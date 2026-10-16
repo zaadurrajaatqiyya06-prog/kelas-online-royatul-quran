@@ -619,12 +619,12 @@ export default function AdminPage() {
               </p>
             </div>
 
-            <div className="flex rounded-xl bg-slate-100 p-1 text-xs font-semibold">
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 text-xs font-semibold">
               {(["serempak", "pengecualian", "manual"] as const).map((m, i) => (
                 <button
                   key={m}
                   onClick={() => setKenaikanMode(m)}
-                  className={`flex-1 rounded-lg py-2 transition ${kenaikanMode === m ? "bg-white text-amber-900 shadow-sm" : "text-slate-600"}`}
+                  className={`rounded-lg py-2 text-center transition ${kenaikanMode === m ? "bg-white text-amber-900 shadow-sm" : "text-slate-600 hover:text-slate-800"}`}
                 >
                   {i + 1}. {m.charAt(0).toUpperCase() + m.slice(1)}
                 </button>

@@ -364,23 +364,23 @@ function WalasDashboardContent() {
       <AppNavbar />
 
       {/* Header Banner Walas */}
-      <div className="bg-gradient-to-r from-purple-900 via-indigo-950 to-slate-900 p-5 text-white">
+      <div className="bg-gradient-to-r from-slate-900 via-teal-950 to-emerald-950 p-5 text-white">
         <div className="flex items-center justify-between">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-purple-200 border border-purple-400/30">
-              <ShieldCheck className="h-3 w-3 text-purple-300" />
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-200 border border-emerald-500/30">
+              <ShieldCheck className="h-3 w-3 text-emerald-300" />
               <span>Portal Wali Kelas</span>
             </div>
             <h2 className="mt-1 text-lg font-bold tracking-tight text-white leading-tight">
               Rekap Semua Mapel • {kelasNama}
             </h2>
-            <p className="text-xs text-purple-300">
+            <p className="text-xs text-emerald-300">
               Wali Kelas: {currentUser?.nama || "Ustadz Zaadurraja Atqiyya"}
             </p>
           </div>
 
           <div className="flex flex-col items-end">
-            <span className="text-xs text-purple-200">Total Siswa</span>
+            <span className="text-xs text-emerald-200">Total Siswa</span>
             <span className="text-2xl font-black text-white">{totalMuridKelas}</span>
           </div>
         </div>
@@ -388,8 +388,8 @@ function WalasDashboardContent() {
         {/* Quick Stats Walas */}
         <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
           <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-sm">
-            <p className="text-lg font-black text-purple-200">{classTugas.length}</p>
-            <p className="text-[10px] text-purple-300">Total Tugas/UH</p>
+            <p className="text-lg font-black text-emerald-200">{classTugas.length}</p>
+            <p className="text-[10px] text-emerald-300">Total Tugas/UH</p>
           </div>
 
           <div className={`rounded-xl p-2.5 backdrop-blur-sm ${totalBelumSemuaTugas > 0 ? "bg-rose-500/20 border border-rose-500/30" : "bg-emerald-500/20"}`}>
@@ -406,12 +406,12 @@ function WalasDashboardContent() {
         </div>
 
         {/* Top Tab Switcher */}
-        <div className="mt-4 flex rounded-xl bg-purple-950/60 p-1 border border-purple-800/40 text-xs font-semibold">
+        <div className="mt-4 flex rounded-xl bg-emerald-950/60 p-1 border border-emerald-800/40 text-xs font-semibold">
           <button
             type="button"
             onClick={() => setActiveTab("cek_walmu")}
             className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 transition ${
-              activeTab === "cek_walmu" ? "bg-white text-purple-950 shadow-sm font-bold" : "text-purple-200 hover:text-white"
+              activeTab === "cek_walmu" ? "bg-white text-emerald-950 shadow-sm font-bold" : "text-emerald-200 hover:text-white"
             }`}
           >
             <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
@@ -422,7 +422,7 @@ function WalasDashboardContent() {
             type="button"
             onClick={() => setActiveTab("pengumpulan")}
             className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 transition ${
-              activeTab === "pengumpulan" ? "bg-white text-purple-950 shadow-sm font-bold" : "text-purple-200 hover:text-white"
+              activeTab === "pengumpulan" ? "bg-white text-emerald-950 shadow-sm font-bold" : "text-emerald-200 hover:text-white"
             }`}
           >
             <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
@@ -433,10 +433,10 @@ function WalasDashboardContent() {
             type="button"
             onClick={() => setActiveTab("rapor")}
             className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 transition ${
-              activeTab === "rapor" ? "bg-white text-purple-950 shadow-sm font-bold" : "text-purple-200 hover:text-white"
+              activeTab === "rapor" ? "bg-white text-emerald-950 shadow-sm font-bold" : "text-emerald-200 hover:text-white"
             }`}
           >
-            <Award className="h-3.5 w-3.5 text-purple-400" />
+            <Award className="h-3.5 w-3.5 text-emerald-400" />
             <span>3. Rekap Rapor</span>
           </button>
         </div>
@@ -449,7 +449,7 @@ function WalasDashboardContent() {
         {activeTab === "cek_walmu" && (
           <div className="space-y-4">
             {/* Action Bar & Share to Parent Group */}
-            <div className="rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-50 via-white to-indigo-50/40 p-4 shadow-xs space-y-3">
+            <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50/40 p-4 shadow-xs space-y-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex items-center gap-1.5">
@@ -469,7 +469,7 @@ function WalasDashboardContent() {
                   <button
                     type="button"
                     onClick={handleCopyWalmuLink}
-                    className="flex items-center gap-1 rounded-xl bg-purple-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-purple-800 transition"
+                    className="flex items-center gap-1 rounded-xl bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition"
                   >
                     {copiedWalmuLink ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Share2 className="h-3.5 w-3.5" />}
                     <span>{copiedWalmuLink ? "Link Disalin!" : "Salin Link Walmu"}</span>
@@ -478,7 +478,7 @@ function WalasDashboardContent() {
                   <Link
                     href={`/pantau/${kelasSlug}`}
                     target="_blank"
-                    className="flex items-center gap-1 rounded-xl border border-purple-200 bg-white px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-50 transition"
+                    className="flex items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition"
                   >
                     <ExternalLink className="h-3.5 w-3.5" />
                     <span>Lihat Halaman Walmu</span>
@@ -506,10 +506,10 @@ function WalasDashboardContent() {
               </div>
 
               {/* Filter controls: Tanggal & Search */}
-              <div className="border-t border-purple-100/80 pt-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="border-t border-emerald-100/80 pt-3 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 flex-wrap">
                   <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-2.5 py-1">
-                    <Calendar className="h-3.5 w-3.5 text-purple-600 shrink-0" />
+                    <Calendar className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                     <span className="text-xs font-bold text-slate-700">Tgl:</span>
                     <input
                       type="date"
@@ -526,7 +526,7 @@ function WalasDashboardContent() {
                       const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jakarta" }).format(new Date());
                       setMatrixDate(today);
                     }}
-                    className="rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-purple-700 hover:bg-purple-50 transition"
+                    className="rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-50 transition"
                   >
                     Hari Ini
                   </button>
@@ -537,7 +537,7 @@ function WalasDashboardContent() {
                     disabled={loadingMatrix}
                     className="flex items-center gap-1 rounded-lg bg-white border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
                   >
-                    <RefreshCw className={`h-3 w-3 ${loadingMatrix ? "animate-spin text-purple-600" : ""}`} />
+                    <RefreshCw className={`h-3 w-3 ${loadingMatrix ? "animate-spin text-emerald-600" : ""}`} />
                     <span>Perbarui</span>
                   </button>
                 </div>
@@ -549,7 +549,7 @@ function WalasDashboardContent() {
                     placeholder="Cari santri di tabel..."
                     value={matrixSearch}
                     onChange={(e) => setMatrixSearch(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:border-purple-500 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-200 bg-white pl-8 pr-3 py-1.5 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -575,13 +575,13 @@ function WalasDashboardContent() {
                         onClick={() => setMatrixDate(d)}
                         className={`rounded-lg px-2 py-0.5 text-[11px] font-bold transition flex items-center gap-1 ${
                           isSelected
-                            ? "bg-purple-700 text-white shadow-xs"
+                            ? "bg-emerald-700 text-white shadow-xs"
                             : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                         }`}
                       >
                         <span>{dLabel}</span>
                         {isToday && (
-                          <span className={`text-[9px] px-1 rounded ${isSelected ? "bg-purple-800 text-white" : "bg-purple-100 text-purple-800"}`}>
+                          <span className={`text-[9px] px-1 rounded ${isSelected ? "bg-emerald-800 text-white" : "bg-emerald-100 text-emerald-800"}`}>
                             Hari ini
                           </span>
                         )}
@@ -593,7 +593,7 @@ function WalasDashboardContent() {
 
               {/* Mapel Filter Chips */}
               {matrixData?.availableMapels && matrixData.availableMapels.length > 0 && (
-                <div className="border-t border-purple-100/60 pt-2.5 flex items-center gap-1.5 flex-wrap">
+                <div className="border-t border-emerald-100/60 pt-2.5 flex items-center gap-1.5 flex-wrap">
                   <span className="text-[11px] font-bold text-slate-500 mr-1 flex items-center gap-1">
                     <Filter className="h-3 w-3" /> Filter Mapel:
                   </span>
@@ -602,7 +602,7 @@ function WalasDashboardContent() {
                     onClick={() => setMatrixSelectedMapels([])}
                     className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
                       matrixSelectedMapels.length === 0
-                        ? "bg-purple-700 text-white shadow-xs"
+                        ? "bg-emerald-700 text-white shadow-xs"
                         : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                     }`}
                   >
@@ -621,7 +621,7 @@ function WalasDashboardContent() {
                         }}
                         className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
                           isSelected
-                            ? "bg-purple-700 text-white shadow-xs"
+                            ? "bg-emerald-700 text-white shadow-xs"
                             : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
                         }`}
                       >
@@ -632,30 +632,6 @@ function WalasDashboardContent() {
                 </div>
               )}
             </div>
-
-            {/* Quick Stat Pill */}
-            {matrixData?.summary && (
-              <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
-                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 shadow-2xs">
-                  <span className="text-xl sm:text-2xl font-black text-emerald-700">
-                    {matrixData.summary.allCompletedCount}
-                  </span>
-                  <p className="text-[10px] sm:text-xs font-bold text-emerald-800">Lengkap Semua (✅)</p>
-                </div>
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 shadow-2xs">
-                  <span className="text-xl sm:text-2xl font-black text-amber-700">
-                    {matrixData.summary.partialCount}
-                  </span>
-                  <p className="text-[10px] sm:text-xs font-bold text-amber-800">Kurang Sebagian</p>
-                </div>
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 shadow-2xs">
-                  <span className="text-xl sm:text-2xl font-black text-rose-700">
-                    {matrixData.summary.noneCompletedCount}
-                  </span>
-                  <p className="text-[10px] sm:text-xs font-bold text-rose-800">Belum Kumpul (❌)</p>
-                </div>
-              </div>
-            )}
 
             {/* Spreadsheet Matrix Box */}
             <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
@@ -683,7 +659,7 @@ function WalasDashboardContent() {
 
               {loadingMatrix ? (
                 <div className="p-12 text-center text-xs text-slate-500 space-y-2">
-                  <RefreshCw className="mx-auto h-6 w-6 animate-spin text-purple-600" />
+                  <RefreshCw className="mx-auto h-6 w-6 animate-spin text-emerald-600" />
                   <p>Memuat rekap matrix santri...</p>
                 </div>
               ) : !matrixData || matrixData.tasks.length === 0 ? (
@@ -795,6 +771,30 @@ function WalasDashboardContent() {
                 </div>
               )}
             </div>
+
+            {/* ── 3 Indicator Stats (after matrix) ── */}
+            {matrixData?.summary && (
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-3 shadow-2xs">
+                  <span className="text-xl sm:text-2xl font-black text-emerald-700">
+                    {matrixData.summary.allCompletedCount}
+                  </span>
+                  <p className="text-[10px] sm:text-xs font-bold text-emerald-800">Lengkap Semua (✅)</p>
+                </div>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 shadow-2xs">
+                  <span className="text-xl sm:text-2xl font-black text-amber-700">
+                    {matrixData.summary.partialCount}
+                  </span>
+                  <p className="text-[10px] sm:text-xs font-bold text-amber-800">Kurang Sebagian</p>
+                </div>
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 shadow-2xs">
+                  <span className="text-xl sm:text-2xl font-black text-rose-700">
+                    {matrixData.summary.noneCompletedCount}
+                  </span>
+                  <p className="text-[10px] sm:text-xs font-bold text-rose-800">Belum Kumpul (❌)</p>
+                </div>
+              </div>
+            )}
 
             {/* Petunjuk & Panduan Walas */}
             <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xs text-xs text-slate-600 space-y-2">

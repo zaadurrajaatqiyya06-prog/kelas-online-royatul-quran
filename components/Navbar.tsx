@@ -6,12 +6,6 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/lib/store";
 import { LogOut, BookOpen, HelpCircle } from "lucide-react";
 
-const ROLE_CONFIG: Record<string, { label: string; color: string }> = {
-  murid: { label: "Murid", color: "bg-emerald-100 text-emerald-800" },
-  walas: { label: "Wali Kelas", color: "bg-purple-100 text-purple-800" },
-  guru: { label: "Guru", color: "bg-blue-100 text-blue-800" },
-  admin: { label: "Admin", color: "bg-amber-100 text-amber-900 border border-amber-300" },
-};
 
 export function AppNavbar() {
   const { currentUser, logout } = useApp();
@@ -22,9 +16,6 @@ export function AppNavbar() {
     router.push("/login");
   };
 
-  const roleConfig = currentUser ? ROLE_CONFIG[currentUser.role] : null;
-  const firstName = currentUser?.nama?.split(" ")[0] || "";
-  const avatarLetter = currentUser?.nama?.charAt(0)?.toUpperCase() || "?";
 
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100/80 bg-white/96 px-4 py-2.5 backdrop-blur-xl shadow-sm shadow-slate-100/60">
@@ -50,24 +41,6 @@ export function AppNavbar() {
       <div className="flex items-center gap-2 shrink-0">
         {currentUser ? (
           <>
-            {/* Role badge — hidden on mobile */}
-            {roleConfig && (
-              <span
-                className={`hidden sm:inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${roleConfig.color}`}
-              >
-                {roleConfig.label}
-              </span>
-            )}
-
-            {/* User avatar + name */}
-            <div className="flex items-center gap-1.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-slate-200 to-slate-300 text-slate-700 font-bold text-xs shrink-0">
-                {avatarLetter}
-              </div>
-              <span className="hidden sm:block text-xs font-semibold text-slate-700 max-w-[100px] truncate">
-                {firstName}
-              </span>
-            </div>
 
             {/* Manual Book Link */}
             <a
