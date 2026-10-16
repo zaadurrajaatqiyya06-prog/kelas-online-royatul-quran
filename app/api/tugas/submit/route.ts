@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     try {
       const [userRes, tugasRes] = await Promise.all([
         supabase.from("users").select("nama, nis").eq("id", muridId).single(),
-        supabase.from("tugas").select("judul, jenis, kelas:kelas_id(nama), mapel:mapel_id(id, nama, telegram_topic_id, kode)").eq("id", tugasId).single(),
+        supabase.from("tugas").select("judul, jenis, kelas:kelas_id(nama), mapel:mapel_id(*)").eq("id", tugasId).single(),
       ]);
 
       const u = userRes.data;
@@ -61,9 +61,10 @@ export async function POST(req: NextRequest) {
       if (u && t) {
         let threadId: number | null = null;
         if (t.mapel?.telegram_topic_id) {
-          const parsed = parseInt(t.mapel.telegram_topic_id, 10);
+          const parsed = parseInt(String(t.mapel.telegram_topic_id), 10);
           if (!isNaN(parsed)) threadId = parsed;
-        } else if (t.mapel?.kode && t.mapel.kode.startsWith("tg:")) {
+        }
+        if (!threadId && t.mapel?.kode && t.mapel.kode.startsWith("tg:")) {
           const parsed = parseInt(t.mapel.kode.replace("tg:", ""), 10);
           if (!isNaN(parsed)) threadId = parsed;
         }

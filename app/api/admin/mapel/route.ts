@@ -131,6 +131,21 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
+    // 4. Bersihkan folder Google Drive di semua kelas untuk mapel ini
+    if (mapelData && mapelData.nama) {
+      try {
+        const { data: kelasRows } = await supabase.from("kelas").select("nama").order("jenjang");
+        const kelasNames = (kelasRows && kelasRows.length > 0)
+          ? kelasRows.map((k) => k.nama)
+          : ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"];
+
+        const { deleteMapelFoldersForAllClasses } = await import("@/lib/gdrive");
+        await deleteMapelFoldersForAllClasses(mapelData.nama, kelasNames);
+      } catch (driveErr) {
+        console.warn("[admin/mapel DELETE] deleteMapelFoldersForAllClasses error:", driveErr);
+      }
+    }
+
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (err: any) {
     console.error("[admin/mapel DELETE]", err);

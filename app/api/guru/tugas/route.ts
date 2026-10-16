@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     if (!targetKelasNama || !targetMapelNama) {
       const [kRes, mRes] = await Promise.all([
         supabase.from("kelas").select("nama").eq("id", kelasId).single(),
-        supabase.from("mapel").select("nama, telegram_topic_id, kode").eq("id", mapelId).single(),
+        supabase.from("mapel").select("*").eq("id", mapelId).single(),
       ]);
       if (kRes.data) targetKelasNama = kRes.data.nama;
       if (mRes.data) {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         mapelRecord = mRes.data;
       }
     } else {
-      const { data: mData } = await supabase.from("mapel").select("nama, telegram_topic_id, kode").eq("id", mapelId).single();
+      const { data: mData } = await supabase.from("mapel").select("*").eq("id", mapelId).single();
       mapelRecord = mData;
     }
 

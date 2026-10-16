@@ -79,6 +79,175 @@ async function compressImageFile(file: File, maxDimension = 1920, quality = 0.8)
 }
 
 /* ─────────────────────────────────────────────────────────────
+   Helper: Generate Dokumen Resmi PDF Lembar Jawaban Santri
+───────────────────────────────────────────────────────────── */
+async function generateOfficialPdfBlob(params: {
+  namaMurid: string;
+  nis?: string;
+  kelasNama: string;
+  mapelNama: string;
+  tugasJudul: string;
+  jenisTugas: string;
+  guruNama: string;
+  tglSubmit: string;
+  deadline: string;
+  soalPGList?: SoalPG[];
+  jawabanPG?: Record<number, "A" | "B" | "C" | "D">;
+  soalEsaiList?: any[];
+  jawabanEsai?: Record<number, string>;
+  jawabanTeks?: string;
+  autoNilai?: number;
+}): Promise<Blob> {
+  const { jsPDF } = await import("jspdf");
+  const html2canvas = (await import("html2canvas")).default;
+
+  const container = document.createElement("div");
+  container.style.position = "fixed";
+  container.style.left = "-9999px";
+  container.style.top = "0";
+  container.style.width = "794px"; // A4 width at 96 DPI
+  container.style.backgroundColor = "#ffffff";
+  container.style.padding = "36px 40px";
+  container.style.boxSizing = "border-box";
+  container.style.fontFamily = "'Segoe UI', Arial, sans-serif";
+  container.style.color = "#1e293b";
+
+  let soalContent = "";
+  if (params.jenisTugas === "pg" && params.soalPGList) {
+    const skorPG = params.autoNilai ?? 0;
+    const benar = params.soalPGList.filter(
+      (s) => params.jawabanPG && params.jawabanPG[s.nomor] === s.kunciJawaban
+    ).length;
+
+    soalContent += `
+      <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:12px;padding:16px;text-align:center;margin-bottom:18px;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#166534;">SKOR AKHIR (AUTO-GRADING)</div>
+        <div style="font-size:52px;font-weight:900;color:#16a34a;line-height:1;margin:6px 0 4px;">${skorPG}</div>
+        <div style="font-size:11px;color:#166534;font-weight:600;">${benar} benar dari ${params.soalPGList.length} soal</div>
+      </div>
+      <h3 style="font-size:11px;font-weight:800;color:#1e293b;margin:16px 0 8px;text-transform:uppercase;letter-spacing:0.5px;">RINCIAN SOAL &amp; JAWABAN PILIHAN GANDA</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;">
+        <thead>
+          <tr style="background:#f8fafc;">
+            <th style="padding:6px;border:1px solid #e2e8f0;font-size:9px;width:30px;">NO</th>
+            <th style="padding:6px 8px;border:1px solid #e2e8f0;font-size:9px;text-align:left;">PERTANYAAN</th>
+            <th style="padding:6px;border:1px solid #e2e8f0;font-size:9px;width:35px;">A</th>
+            <th style="padding:6px;border:1px solid #e2e8f0;font-size:9px;width:35px;">B</th>
+            <th style="padding:6px;border:1px solid #e2e8f0;font-size:9px;width:35px;">C</th>
+            <th style="padding:6px;border:1px solid #e2e8f0;font-size:9px;width:35px;">D</th>
+            <th style="padding:6px;border:1px solid #e2e8f0;font-size:9px;width:55px;">JAWABAN ANDA</th>
+            <th style="padding:6px;border:1px solid #e2e8f0;font-size:9px;width:45px;">KUNCI</th>
+            <th style="padding:6px;border:1px solid #e2e8f0;font-size:9px;width:35px;">KET.</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${params.soalPGList.map((s) => {
+            const ans = params.jawabanPG ? params.jawabanPG[s.nomor] || "-" : "-";
+            const isRight = ans === s.kunciJawaban;
+            return `<tr>
+              <td style="padding:6px;border:1px solid #e2e8f0;text-align:center;font-weight:700;">${s.nomor}</td>
+              <td style="padding:6px 8px;border:1px solid #e2e8f0;font-size:10px;">${s.pertanyaan}</td>
+              <td style="padding:6px;border:1px solid #e2e8f0;text-align:center;">${s.opsiA}</td>
+              <td style="padding:6px;border:1px solid #e2e8f0;text-align:center;">${s.opsiB}</td>
+              <td style="padding:6px;border:1px solid #e2e8f0;text-align:center;">${s.opsiC || "-"}</td>
+              <td style="padding:6px;border:1px solid #e2e8f0;text-align:center;">${s.opsiD || "-"}</td>
+              <td style="padding:6px;border:1px solid #e2e8f0;text-align:center;font-weight:800;color:${isRight ? "#15803d" : "#dc2626"};">${ans}</td>
+              <td style="padding:6px;border:1px solid #e2e8f0;text-align:center;font-weight:700;color:#15803d;">${s.kunciJawaban}</td>
+              <td style="padding:6px;border:1px solid #e2e8f0;text-align:center;font-size:11px;">${isRight ? "✅" : "❌"}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+  } else if (params.soalEsaiList && params.soalEsaiList.length > 0) {
+    soalContent += `
+      <h3 style="font-size:11px;font-weight:800;color:#1e293b;margin:16px 0 8px;text-transform:uppercase;">Lembar Jawaban Esai</h3>
+      ${params.soalEsaiList.map((item) => `
+        <div style="border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin-bottom:12px;">
+          <div style="font-size:9px;font-weight:700;color:#059669;margin-bottom:4px;">SOAL ${item.nomor}</div>
+          <div style="font-size:11px;font-weight:700;color:#0f172a;margin-bottom:8px;">${item.pertanyaan}</div>
+          <div style="font-size:9px;font-weight:700;color:#64748b;margin-bottom:4px;">JAWABAN:</div>
+          <div style="font-size:11px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px;min-height:40px;line-height:1.5;">
+            ${(params.jawabanEsai && params.jawabanEsai[item.nomor]) || "(Tidak dijawab)"}
+          </div>
+        </div>
+      `).join("")}
+    `;
+  } else {
+    soalContent += `
+      <h3 style="font-size:11px;font-weight:800;color:#1e293b;margin:16px 0 8px;">Jawaban Tugas</h3>
+      <div style="font-size:11px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px;min-height:80px;line-height:1.6;">
+        ${params.jawabanTeks || "(Tidak diisi)"}
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div style="border-bottom:3px solid #059669;padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div style="font-size:16px;font-weight:900;color:#065f46;">Kelas Online Royatul Quran</div>
+        <div style="font-size:11px;font-weight:600;color:#475569;margin-top:2px;">Lembar Jawaban Tugas — Dokumen Resmi</div>
+      </div>
+      <div style="background:#059669;color:white;padding:5px 12px;border-radius:6px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;">
+        TELAH DIKUMPULKAN
+      </div>
+    </div>
+
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:11px;">
+      <tr><td style="width:130px;color:#64748b;font-weight:600;padding:4px 0;">Nama Murid</td><td style="font-weight:700;color:#0f172a;padding:4px 0;">${params.namaMurid}</td></tr>
+      <tr><td style="color:#64748b;font-weight:600;padding:4px 0;">NIS / Kelas</td><td style="font-weight:700;color:#0f172a;padding:4px 0;">${params.nis || "-"} • ${params.kelasNama}</td></tr>
+      <tr><td style="color:#64748b;font-weight:600;padding:4px 0;">Mata Pelajaran</td><td style="font-weight:700;color:#0f172a;padding:4px 0;">${params.mapelNama}</td></tr>
+      <tr><td style="color:#64748b;font-weight:600;padding:4px 0;">Judul Tugas</td><td style="font-weight:700;color:#0f172a;padding:4px 0;">${params.tugasJudul}</td></tr>
+      <tr><td style="color:#64748b;font-weight:600;padding:4px 0;">Jenis Tugas</td><td style="font-weight:700;color:#0f172a;padding:4px 0;">${params.jenisTugas === "pg" ? "Pilihan Ganda" : params.jenisTugas === "esai" ? "Esai" : params.jenisTugas}</td></tr>
+      <tr><td style="color:#64748b;font-weight:600;padding:4px 0;">Guru Pengampu</td><td style="font-weight:700;color:#0f172a;padding:4px 0;">${params.guruNama}</td></tr>
+      <tr><td style="color:#64748b;font-weight:600;padding:4px 0;">Tanggal Kumpul</td><td style="font-weight:700;color:#0f172a;padding:4px 0;">${params.tglSubmit}</td></tr>
+      <tr><td style="color:#64748b;font-weight:600;padding:4px 0;">Deadline</td><td style="font-weight:700;color:#0f172a;padding:4px 0;">${params.deadline}</td></tr>
+    </table>
+
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin-bottom:14px;"/>
+    ${soalContent}
+
+    <div style="margin-top:28px;padding-top:14px;border-top:1px dashed #cbd5e1;display:flex;justify-content:space-between;align-items:flex-end;">
+      <div style="font-size:10px;color:#94a3b8;line-height:1.4;">
+        Dokumen ini dibuat otomatis oleh Sistem Kelas Online Royatul Quran<br/>
+        dan tersimpan di Google Drive Sekolah sebagai arsip resmi.
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:10px;color:#64748b;margin-bottom:35px;">Murid yang Bersangkutan</div>
+        <div style="border-top:1px solid #334155;width:140px;margin:0 auto;"></div>
+        <div style="font-size:10px;font-weight:700;margin-top:4px;">${params.namaMurid}</div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(container);
+
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+    });
+
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+    pdf.addImage(imgData, "JPEG", 0, 0, pdfWidth, pdfHeight);
+    const pdfBlob = pdf.output("blob");
+    return pdfBlob;
+  } finally {
+    document.body.removeChild(container);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
    Komponen utama pengerjaan tugas
 ───────────────────────────────────────────────────────────── */
 function KerjakanTugasContent() {
@@ -256,37 +425,27 @@ function KerjakanTugasContent() {
         fd.append("file", selectedFile);
         fd.append("fileName", `${currentUser?.nama.replace(/\s+/g, "_")}_${selectedFile.name}`);
       } else {
-        // Buat file ringkasan jawaban untuk diarsipkan ke Google Drive
-        let content = `LEMBAR JAWABAN TUGAS SANTRI\n` +
-          `Royatul Qur'an Digital\n` +
-          `===================================\n` +
-          `Santri : ${currentUser?.nama} (NIS: ${currentUser?.nis})\n` +
-          `Kelas  : ${tugas.kelasNama || "Kelas"}\n` +
-          `Mapel  : ${tugas.mapelNama}\n` +
-          `Tugas  : ${tugas.judul}\n` +
-          `Waktu  : ${new Date().toLocaleString("id-ID")}\n` +
-          `===================================\n\n`;
+        // Otomatis buat dokumen resmi PDF lembar jawaban yang rapi dan resmi
+        const pdfBlob = await generateOfficialPdfBlob({
+          namaMurid: currentUser?.nama || "Santri",
+          nis: currentUser?.nis || undefined,
+          kelasNama: tugas.kelasNama || "Kelas",
+          mapelNama: tugas.mapelNama || "Mapel",
+          tugasJudul: tugas.judul || "Tugas",
+          jenisTugas: tugas.jenis,
+          guruNama: tugas.guruNama || "Ustadz",
+          tglSubmit: new Date().toLocaleString("id-ID", { dateStyle: "full", timeStyle: "medium" }),
+          deadline: new Date(tugas.deadline).toLocaleString("id-ID"),
+          soalPGList: tugas.soalPGList,
+          jawabanPG,
+          soalEsaiList: tugas.soalEsaiList,
+          jawabanEsai,
+          jawabanTeks,
+          autoNilai,
+        });
 
-        if (tugas.jenis === "pg" && tugas.soalPGList) {
-          content += `HASIL PILIHAN GANDA (Skor: ${autoNilai}/100):\n`;
-          tugas.soalPGList.forEach((s) => {
-            const ans = jawabanPG[s.nomor] || "-";
-            const correct = ans === s.kunciJawaban ? "BENAR" : `SALAH (Kunci: ${s.kunciJawaban})`;
-            content += `${s.nomor}. Jawaban: ${ans} [${correct}]\n`;
-          });
-        } else if (tugas.jenis === "esai") {
-          content += `JAWABAN ESAI:\n`;
-          if (tugas.soalEsaiList && tugas.soalEsaiList.length > 0) {
-            tugas.soalEsaiList.forEach((s) => {
-              content += `Soal ${s.nomor}: ${s.pertanyaan}\nJawaban:\n${jawabanEsai[s.nomor] || "-"}\n\n`;
-            });
-          } else {
-            content += `${jawabanTeks}\n`;
-          }
-        }
-
-        const blob = new Blob([content], { type: "text/plain" });
-        fd.append("file", blob, `Lembar_Jawaban_${currentUser?.nama.replace(/\s+/g, "_")}.txt`);
+        fd.append("file", pdfBlob, pdfFileName);
+        fd.append("fileName", pdfFileName);
       }
 
       fd.append("kelasNama", tugas.kelasNama || "Kelas");

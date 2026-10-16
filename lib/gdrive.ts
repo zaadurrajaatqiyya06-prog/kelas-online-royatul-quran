@@ -263,3 +263,58 @@ export async function createMapelFoldersForAllClasses(
   return { success: createdCount > 0, createdCount, errors };
 }
 
+// ─── Helper: Otomatis hapus folder Mapel di setiap kelas di Google Drive saat mapel dihapus ───
+export async function deleteMapelFoldersForAllClasses(
+  mapelNama: string,
+  kelasNames: string[] = ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"]
+): Promise<{ success: boolean; deletedCount: number; errors: string[] }> {
+  const drive = getDriveClient();
+  const rootId = getRootFolderId();
+  if (!drive || !rootId) {
+    return { success: false, deletedCount: 0, errors: ["Drive client atau root ID belum siap."] };
+  }
+
+  const errors: string[] = [];
+  let deletedCount = 0;
+
+  const tasks = kelasNames.map(async (kelas) => {
+    try {
+      // 1. Cari folder kelas di root
+      const queryKelas = `mimeType = 'application/vnd.google-apps.folder' and name = '${kelas.replace(/'/g, "\\'")}' and '${rootId}' in parents and trashed = false`;
+      const resKelas = await drive.files.list({
+        q: queryKelas,
+        fields: "files(id, name)",
+        spaces: "drive",
+      });
+
+      if (resKelas.data.files && resKelas.data.files.length > 0) {
+        const kelasFolderId = resKelas.data.files[0].id!;
+
+        // 2. Cari folder mapel di dalam folder kelas
+        const queryMapel = `mimeType = 'application/vnd.google-apps.folder' and name = '${mapelNama.replace(/'/g, "\\'")}' and '${kelasFolderId}' in parents and trashed = false`;
+        const resMapel = await drive.files.list({
+          q: queryMapel,
+          fields: "files(id, name)",
+          spaces: "drive",
+        });
+
+        if (resMapel.data.files && resMapel.data.files.length > 0) {
+          for (const f of resMapel.data.files) {
+            if (f.id) {
+              await drive.files.delete({ fileId: f.id });
+              deletedCount++;
+            }
+          }
+        }
+      }
+    } catch (e: any) {
+      console.warn(`[gdrive] Gagal hapus folder ${mapelNama} di ${kelas}:`, e?.message || e);
+      errors.push(`${kelas}: ${e?.message || "Gagal"}`);
+    }
+  });
+
+  await Promise.allSettled(tasks);
+  return { success: deletedCount > 0, deletedCount, errors };
+}
+
+
