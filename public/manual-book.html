@@ -631,9 +631,213 @@
       padding-top: 1rem;
     }
 
+    /* Mobile Specific Controls (Hidden on desktop) */
+    .mobile-toggle-btn {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: var(--primary-surface);
+      color: var(--primary-dark);
+      border: 1px solid rgba(5, 150, 105, 0.2);
+      cursor: pointer;
+    }
+
+    .mobile-pills-bar {
+      display: none;
+      position: sticky;
+      top: 59px;
+      z-index: 45;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+
+    .mobile-pills-scroll {
+      display: flex;
+      overflow-x: auto;
+      white-space: nowrap;
+      gap: 0.5rem;
+      padding: 0.65rem 0.85rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .mobile-pills-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-body);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .pill:hover, .pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Mobile Drawer */
+    .drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 99;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .drawer-backdrop.active {
+      display: block;
+      opacity: 1;
+    }
+
+    .mobile-drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 82%;
+      max-width: 340px;
+      background: white;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .mobile-drawer.active {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      padding: 1.15rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .drawer-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-body);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .drawer-search {
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-body);
+    }
+
+    .drawer-search input {
+      width: 100%;
+      padding: 0.5rem 0.85rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      font-size: 0.825rem;
+      outline: none;
+      background: white;
+    }
+
+    .drawer-search input:focus {
+      border-color: var(--primary);
+    }
+
+    .drawer-nav-list {
+      list-style: none;
+      padding: 1rem 0.75rem;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .drawer-nav-list li a {
+      display: flex;
+      align-items: center;
+      padding: 0.65rem 0.75rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+
+    .drawer-nav-list li a:hover, .drawer-nav-list li a.active {
+      background: var(--primary-surface);
+      color: var(--primary-dark);
+    }
+
+    /* Floating Action Buttons for Mobile */
+    .mobile-fab-container {
+      display: none;
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      z-index: 40;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .mobile-fab {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      padding: 0.65rem 1.15rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.35);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .mobile-fab.fab-secondary {
+      background: white;
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 0.5rem;
+      width: 40px;
+      height: 40px;
+      justify-content: center;
+      box-shadow: var(--shadow-md);
+    }
+
     /* Print styling */
     @media print {
-      header.top-nav, aside.sidebar, .btn, .search-box {
+      header.top-nav, aside.sidebar, .btn, .search-box, .mobile-pills-bar, .mobile-fab-container {
         display: none !important;
       }
       .container {
@@ -652,15 +856,101 @@
       }
     }
 
+    /* Mobile & Tablet Overrides (<= 1024px) */
     @media (max-width: 1024px) {
-      .container {
-        flex-direction: column;
-        padding: 1.25rem;
+      header.top-nav {
+        padding: 0.65rem 1rem;
+      }
+      .brand-title p {
+        display: none;
+      }
+      .search-box {
+        display: none;
+      }
+      .btn-outline {
+        display: none;
+      }
+      .mobile-toggle-btn {
+        display: inline-flex;
+      }
+      .mobile-pills-bar {
+        display: block;
+      }
+      .mobile-fab-container {
+        display: flex;
       }
       aside.sidebar {
-        width: 100%;
-        position: static;
-        max-height: none;
+        display: none !important; /* Hapus sidebar masif di mobile agar konten langsung terlihat */
+      }
+      .container {
+        padding: 0.85rem 0.75rem;
+        gap: 1rem;
+        max-width: 100%;
+      }
+      .hero-banner {
+        padding: 1.5rem 1.15rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 1.25rem;
+      }
+      .hero-banner h2 {
+        font-size: 1.35rem;
+        line-height: 1.3;
+      }
+      .hero-banner p {
+        font-size: 0.85rem;
+        line-height: 1.5;
+      }
+      .hero-banner::after {
+        display: none;
+      }
+      .hero-meta {
+        flex-direction: column;
+        gap: 0.45rem;
+        font-size: 0.75rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+      }
+      section.doc-section {
+        padding: 1.25rem 0.95rem;
+        border-radius: var(--radius-md);
+        margin-bottom: 1.25rem;
+      }
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      .section-title h3 {
+        font-size: 1.15rem;
+      }
+      .card-grid {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+      }
+      .step-item {
+        gap: 0.75rem;
+        padding: 0.95rem;
+      }
+      .step-num {
+        width: 28px;
+        height: 28px;
+        font-size: 0.8rem;
+      }
+      .table-container {
+        margin: 1rem -0.25rem;
+        border-radius: var(--radius-sm);
+        -webkit-overflow-scrolling: touch;
+      }
+      table {
+        min-width: 500px;
+        font-size: 0.775rem;
+      }
+      th, td {
+        padding: 0.65rem 0.75rem;
+      }
+      pre {
+        font-size: 0.75rem !important;
+        padding: 0.95rem !important;
       }
     }
   </style>
@@ -680,16 +970,36 @@
     <div class="nav-actions">
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Cari fitur / panduan..." onkeyup="filterDocs()">
+        <input type="text" id="searchInput" placeholder="Cari fitur / panduan..." onkeyup="syncAndFilterDocs(this.value, 'desktop')">
       </div>
       <button class="btn btn-outline" onclick="window.print()">
         🖨️ Cetak / PDF
+      </button>
+      <button class="mobile-toggle-btn" onclick="openDrawer()">
+        📑 Daftar Isi
       </button>
       <a href="/" class="btn btn-primary">
         🚀 Buka Aplikasi
       </a>
     </div>
   </header>
+
+  <!-- Mobile Quick Horizontal Category Bar (Visible only on mobile/tablet) -->
+  <nav class="mobile-pills-bar" aria-label="Navigasi Cepat Bab">
+    <div class="mobile-pills-scroll" id="mobilePillsScroll">
+      <a href="#pengantar" class="pill active">📌 1. Pengantar</a>
+      <a href="#hak-akses" class="pill">👥 2. Hak Akses</a>
+      <a href="#admin" class="pill">⚙️ 3. Admin</a>
+      <a href="#kenaikan-kelas" class="pill">🎓 4. Kenaikan Kelas</a>
+      <a href="#guru" class="pill">👨‍🏫 5. Guru / Ustadz</a>
+      <a href="#buat-tugas" class="pill">📝 6. Buat Tugas</a>
+      <a href="#penilaian" class="pill">⭐ 7. Penilaian</a>
+      <a href="#walas" class="pill">📋 8. Wali Kelas</a>
+      <a href="#murid" class="pill">🎒 9. Santri</a>
+      <a href="#otomatisasi" class="pill">⚡ 10. Drive & Tele</a>
+      <a href="#troubleshooting" class="pill">❓ 11. FAQ</a>
+    </div>
+  </nav>
 
   <!-- Container -->
   <div class="container">
@@ -1273,17 +1583,86 @@
     </main>
   </div>
 
+  <!-- Mobile Drawer Backdrop & Slide-in Drawer -->
+  <div id="drawerBackdrop" class="drawer-backdrop" onclick="closeDrawer()"></div>
+  <div id="mobileDrawer" class="mobile-drawer" role="dialog" aria-modal="true" aria-label="Daftar Isi Panduan">
+    <div class="drawer-header">
+      <div style="display: flex; align-items: center; gap: 0.65rem;">
+        <div class="brand-logo" style="width: 32px; height: 32px; font-size: 0.95rem;">RQ</div>
+        <h4 style="margin: 0; font-size: 1rem; color: var(--secondary);">Daftar Isi Panduan</h4>
+      </div>
+      <button class="drawer-close-btn" onclick="closeDrawer()" title="Tutup Menu">✕</button>
+    </div>
+
+    <div class="drawer-search">
+      <input type="text" id="drawerSearchInput" placeholder="Cari bab / fitur panduan..." onkeyup="syncAndFilterDocs(this.value, 'drawer')">
+    </div>
+
+    <ul class="drawer-nav-list">
+      <li><a href="#pengantar" onclick="closeDrawer()">📌 1. Pengantar & Arsitektur</a></li>
+      <li><a href="#hak-akses" onclick="closeDrawer()">👥 2. Hak Akses & Akun</a></li>
+      <li><a href="#admin" onclick="closeDrawer()">⚙️ 3. Panduan Administrator</a></li>
+      <li><a href="#kenaikan-kelas" onclick="closeDrawer()">🎓 4. Kenaikan Kelas & Lulus</a></li>
+      <li><a href="#guru" onclick="closeDrawer()">👨‍🏫 5. Panduan Guru & Ustadz</a></li>
+      <li><a href="#buat-tugas" onclick="closeDrawer()">📝 6. Alur Pembuatan Tugas</a></li>
+      <li><a href="#penilaian" onclick="closeDrawer()">⭐ 7. Penilaian & Tolak Tugas</a></li>
+      <li><a href="#walas" onclick="closeDrawer()">📋 8. Panduan Wali Kelas</a></li>
+      <li><a href="#murid" onclick="closeDrawer()">🎒 9. Panduan Santri / Murid</a></li>
+      <li><a href="#otomatisasi" onclick="closeDrawer()">⚡ 10. Otomatisasi Drive & Tele</a></li>
+      <li><a href="#troubleshooting" onclick="closeDrawer()">❓ 11. FAQ & Troubleshooting</a></li>
+    </ul>
+
+    <div style="padding: 1rem; border-top: 1px solid var(--border); background: var(--bg-body); display: flex; gap: 0.65rem;">
+      <button class="btn btn-outline" style="flex: 1; justify-content: center; font-size: 0.8rem;" onclick="window.print(); closeDrawer();">
+        🖨️ Cetak / PDF
+      </button>
+      <a href="/" class="btn btn-primary" style="flex: 1; justify-content: center; font-size: 0.8rem;">
+        🚀 Buka App
+      </a>
+    </div>
+  </div>
+
+  <!-- Floating Quick Actions on Mobile (Menu & Back to Top) -->
+  <div class="mobile-fab-container">
+    <button class="mobile-fab" onclick="openDrawer()">
+      📑 Daftar Isi
+    </button>
+    <button class="mobile-fab fab-secondary" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Kembali ke atas">
+      ⬆️
+    </button>
+  </div>
+
   <script>
+    // FAQ Accordion Toggle
     function toggleFaq(button) {
       const item = button.parentElement;
       item.classList.toggle('open');
     }
 
-    function filterDocs() {
-      const input = document.getElementById('searchInput');
-      const filter = input.value.toLowerCase();
-      const sections = document.querySelectorAll('section.doc-section');
+    // Mobile Drawer Controls
+    function openDrawer() {
+      document.getElementById('drawerBackdrop').classList.add('active');
+      document.getElementById('mobileDrawer').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
 
+    function closeDrawer() {
+      document.getElementById('drawerBackdrop').classList.remove('active');
+      document.getElementById('mobileDrawer').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Unified Search & Filter for Desktop and Mobile
+    function syncAndFilterDocs(val, origin) {
+      const filter = val.toLowerCase();
+      
+      const desktopSearch = document.getElementById('searchInput');
+      const drawerSearch = document.getElementById('drawerSearchInput');
+      
+      if (origin === 'desktop' && drawerSearch) drawerSearch.value = val;
+      if (origin === 'drawer' && desktopSearch) desktopSearch.value = val;
+
+      const sections = document.querySelectorAll('section.doc-section');
       sections.forEach(sec => {
         const text = sec.innerText.toLowerCase();
         if (text.includes(filter)) {
@@ -1294,23 +1673,43 @@
       });
     }
 
-    // ScrollSpy for Active Sidebar Link
+    // ScrollSpy for Active Sidebar Link and Horizontal Mobile Pills
     window.addEventListener('scroll', () => {
       const sections = document.querySelectorAll('section.doc-section');
       const navLinks = document.querySelectorAll('.nav-list li a');
+      const drawerLinks = document.querySelectorAll('.drawer-nav-list li a');
+      const pills = document.querySelectorAll('.mobile-pills-scroll .pill');
 
       let current = '';
       sections.forEach(section => {
-        const sectionTop = section.offsetTop - 120;
+        const sectionTop = section.offsetTop - 130;
         if (pageYOffset >= sectionTop) {
           current = section.getAttribute('id');
         }
       });
 
+      // Update Desktop Sidebar Links
       navLinks.forEach(link => {
         link.classList.remove('active');
         if (link.getAttribute('href') === `#${current}`) {
           link.classList.add('active');
+        }
+      });
+
+      // Update Drawer Links
+      drawerLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+
+      // Update Mobile Horizontal Pills & auto-scroll active pill into view
+      pills.forEach(pill => {
+        pill.classList.remove('active');
+        if (pill.getAttribute('href') === `#${current}`) {
+          pill.classList.add('active');
+          pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
       });
     });
