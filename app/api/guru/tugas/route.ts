@@ -88,18 +88,10 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
-    // Kirim pengumuman tugas baru ke topik Telegram yang sesuai
+    // Kirim pengumuman tugas baru ke General Telegram (selalu di General agar semua santri/guru memantau)
     let telegramResult = null;
     try {
       const { sendTelegramMessage } = await import("@/lib/telegram");
-      let threadId: number | null = null;
-      if (mapelRecord?.telegram_topic_id) {
-        const parsed = parseInt(mapelRecord.telegram_topic_id, 10);
-        if (!isNaN(parsed)) threadId = parsed;
-      } else if (mapelRecord?.kode && mapelRecord.kode.startsWith("tg:")) {
-        const parsed = parseInt(mapelRecord.kode.replace("tg:", ""), 10);
-        if (!isNaN(parsed)) threadId = parsed;
-      }
 
       const deadlineStr = new Date(deadline).toLocaleString("id-ID", {
         timeZone: "Asia/Jakarta",
@@ -116,7 +108,8 @@ export async function POST(req: NextRequest) {
         (instruksi ? `📋 <b>Instruksi:</b> <i>${instruksi}</i>\n` : "") +
         `━━━━━━━━━━━━━━━━━━━━━\n` +
         `<i>Silakan santri segera mengerjakan di aplikasi Kelas Online.</i>`;
-      telegramResult = await sendTelegramMessage(text, threadId);
+      // threadId = null agar masuk ke topik 'General'
+      telegramResult = await sendTelegramMessage(text, null);
     } catch (tgErr) {
       console.warn("[telegram new task announcement skipped]", tgErr);
     }
