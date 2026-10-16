@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/lib/store";
-import { LogOut, BookOpen } from "lucide-react";
+import { LogOut, BookOpen, HelpCircle } from "lucide-react";
 
 const ROLE_CONFIG: Record<string, { label: string; color: string }> = {
   murid: { label: "Murid", color: "bg-emerald-100 text-emerald-800" },
@@ -68,6 +68,18 @@ export function AppNavbar() {
                 {firstName}
               </span>
             </div>
+
+            {/* Manual Book Link */}
+            <a
+              href="/manual-book.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Buka Buku Panduan (Manual Book)"
+              className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition"
+            >
+              <HelpCircle className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="hidden md:inline">Panduan</span>
+            </a>
 
             {/* Logout */}
             <button

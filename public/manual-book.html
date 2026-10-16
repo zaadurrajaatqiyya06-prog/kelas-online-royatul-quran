@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buku Panduan Lengkap - Kelas Online & Rekap Tugas Royatul Quran</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-dark: #047857;
+      --primary-light: #d1fae5;
+      --primary-surface: #ecfdf5;
+      --secondary: #0f172a;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-light: #94a3b8;
+      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --bg-body: #f8fafc;
+      --accent-blue: #0284c7;
+      --accent-blue-surface: #e0f2fe;
+      --accent-amber: #d97706;
+      --accent-amber-surface: #fef3c7;
+      --accent-purple: #7c3aed;
+      --accent-purple-surface: #f3e8ff;
+      --accent-rose: #e11d48;
+      --accent-rose-surface: #ffe4e6;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header Nav */
+    header.top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, #059669, #10b981);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.25rem;
+      box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);
+    }
+
+    .brand-title h1 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--secondary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .search-box {
+      position: relative;
+    }
+
+    .search-box input {
+      padding: 0.5rem 1rem 0.5rem 2.25rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      font-size: 0.825rem;
+      width: 220px;
+      outline: none;
+      transition: all 0.2s;
+      background: var(--bg-body);
+    }
+
+    .search-box input:focus {
+      width: 280px;
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-light);
+      pointer-events: none;
+      font-size: 0.85rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1.15rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-body);
+      border-color: var(--text-light);
+    }
+
+    /* Layout Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      padding: 2rem;
+      gap: 2.5rem;
+      align-items: flex-start;
+    }
+
+    /* Sidebar Navigation */
+    aside.sidebar {
+      width: 290px;
+      position: sticky;
+      top: 5.5rem;
+      max-height: calc(100vh - 7rem);
+      overflow-y: auto;
+      background: white;
+      padding: 1.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
+    }
+
+    aside.sidebar::-webkit-scrollbar {
+      width: 5px;
+    }
+    aside.sidebar::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 9999px;
+    }
+
+    .sidebar-heading {
+      font-size: 0.725rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-light);
+      margin-bottom: 0.75rem;
+      padding-left: 0.5rem;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .nav-list li a {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .nav-list li a:hover {
+      background: var(--primary-surface);
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+
+    .nav-list li a.active {
+      background: var(--primary-surface);
+      color: var(--primary);
+      font-weight: 700;
+      border-left: 3px solid var(--primary);
+    }
+
+    /* Content Area */
+    main.content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, #064e3b 0%, #059669 60%, #10b981 100%);
+      border-radius: var(--radius-lg);
+      padding: 2.75rem 2.5rem;
+      color: white;
+      margin-bottom: 2.5rem;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: "📖";
+      position: absolute;
+      right: 2rem;
+      bottom: -1rem;
+      font-size: 9rem;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+
+    .hero-banner h2 {
+      font-size: 2.15rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-banner p {
+      font-size: 1rem;
+      opacity: 0.9;
+      max-width: 720px;
+      line-height: 1.6;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.8rem;
+    }
+
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      opacity: 0.95;
+    }
+
+    /* Section Styling */
+    section.doc-section {
+      background: white;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      padding: 2.25rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+      scroll-margin-top: 6.5rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: var(--primary-surface);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
+    .section-title h3 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--secondary);
+      letter-spacing: -0.015em;
+    }
+
+    .role-badge {
+      padding: 0.3rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.725rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-admin { background: var(--accent-rose-surface); color: var(--accent-rose); }
+    .badge-guru { background: var(--primary-surface); color: var(--primary-dark); }
+    .badge-walas { background: var(--accent-purple-surface); color: var(--accent-purple); }
+    .badge-murid { background: var(--accent-blue-surface); color: var(--accent-blue); }
+    .badge-wali { background: var(--accent-amber-surface); color: var(--accent-amber); }
+
+    /* Typography & Elements */
+    h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--secondary);
+      margin: 1.5rem 0 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: var(--text-main);
+      font-size: 0.925rem;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.25rem;
+      margin: 1.25rem 0;
+      font-size: 0.875rem;
+      display: flex;
+      gap: 0.85rem;
+      align-items: flex-start;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: var(--accent-blue-surface);
+      border-color: var(--accent-blue);
+      color: #0369a1;
+    }
+
+    .callout-success {
+      background: var(--primary-surface);
+      border-color: var(--primary);
+      color: #065f46;
+    }
+
+    .callout-warning {
+      background: var(--accent-amber-surface);
+      border-color: var(--accent-amber);
+      color: #92400e;
+    }
+
+    .callout-danger {
+      background: var(--accent-rose-surface);
+      border-color: var(--accent-rose);
+      color: #9f1239;
+    }
+
+    .callout-icon {
+      font-size: 1.15rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    /* Step Cards & Flow */
+    .step-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin: 1.25rem 0;
+    }
+
+    .step-item {
+      display: flex;
+      gap: 1.25rem;
+      background: var(--bg-body);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      align-items: flex-start;
+      transition: border-color 0.2s;
+    }
+
+    .step-item:hover {
+      border-color: var(--primary);
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      font-weight: 800;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-content h5 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 0.35rem;
+    }
+
+    .step-content p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    /* Grid Cards */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin: 1.25rem 0;
+    }
+
+    .feature-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .feature-card.highlight {
+      border-top: 3px solid var(--primary);
+    }
+
+    .feature-card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .feature-card-icon {
+      font-size: 1.35rem;
+    }
+
+    .feature-card h5 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .feature-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      margin: 1.25rem 0;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    thead {
+      background: var(--bg-body);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 0.75rem 1rem;
+      font-weight: 700;
+      color: var(--secondary);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.04em;
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-main);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: var(--bg-body);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: #f1f5f9;
+      color: #0f172a;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      font-size: 0.825em;
+      border: 1px solid #e2e8f0;
+    }
+
+    /* Accordion FAQ */
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+
+    .faq-trigger {
+      width: 100%;
+      text-align: left;
+      padding: 1rem 1.25rem;
+      background: white;
+      border: none;
+      font-size: 0.925rem;
+      font-weight: 700;
+      color: var(--secondary);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.15s;
+    }
+
+    .faq-trigger:hover {
+      background: var(--bg-body);
+    }
+
+    .faq-body {
+      padding: 0 1.25rem 1.25rem;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      background: var(--bg-body);
+      display: none;
+    }
+
+    .faq-item.open .faq-body {
+      display: block;
+      padding-top: 1rem;
+    }
+
+    /* Print styling */
+    @media print {
+      header.top-nav, aside.sidebar, .btn, .search-box {
+        display: none !important;
+      }
+      .container {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+      }
+      section.doc-section {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        page-break-inside: avoid;
+        margin-bottom: 2rem !important;
+      }
+      body {
+        background: white !important;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .container {
+        flex-direction: column;
+        padding: 1.25rem;
+      }
+      aside.sidebar {
+        width: 100%;
+        position: static;
+        max-height: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <header class="top-nav">
+    <a href="/" class="brand">
+      <div class="brand-logo">RQ</div>
+      <div class="brand-title">
+        <h1>Royatul Quran</h1>
+        <p>Buku Panduan Penggunaan & Dokumentasi Sistem</p>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Cari fitur / panduan..." onkeyup="filterDocs()">
+      </div>
+      <button class="btn btn-outline" onclick="window.print()">
+        🖨️ Cetak / PDF
+      </button>
+      <a href="/" class="btn btn-primary">
+        🚀 Buka Aplikasi
+      </a>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <div class="container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-heading">Daftar Isi Panduan</div>
+      <ul class="nav-list">
+        <li><a href="#pengantar" class="active">📌 1. Pengantar & Arsitektur</a></li>
+        <li><a href="#hak-akses">👥 2. Hak Akses & Akun</a></li>
+        <li><a href="#admin">⚙️ 3. Panduan Administrator</a></li>
+        <li><a href="#kenaikan-kelas">🎓 4. Kenaikan Kelas & Lulus</a></li>
+        <li><a href="#guru">👨‍🏫 5. Panduan Guru & Ustadz</a></li>
+        <li><a href="#buat-tugas">📝 6. Alur Pembuatan Tugas</a></li>
+        <li><a href="#penilaian">⭐ 7. Penilaian & Tolak Tugas</a></li>
+        <li><a href="#walas">📋 8. Panduan Wali Kelas</a></li>
+        <li><a href="#murid">🎒 9. Panduan Santri / Murid</a></li>
+        <li><a href="#otomatisasi">⚡ 10. Otomatisasi Drive & Tele</a></li>
+        <li><a href="#troubleshooting">❓ 11. FAQ & Troubleshooting</a></li>
+      </ul>
+
+      <div class="sidebar-heading" style="margin-top: 1.5rem;">Informasi Sistem</div>
+      <div style="font-size: 0.775rem; color: var(--text-muted); line-height: 1.5; padding: 0.5rem;">
+        <strong>Versi:</strong> v2.4 Enterprise<br>
+        <strong>Platform:</strong> Web Responsive / PWA<br>
+        <strong>Integrasi:</strong> Drive API + Telegram Supergroup
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+
+      <!-- Hero Banner -->
+      <div class="hero-banner">
+        <span class="hero-badge">Manual Book Resmi</span>
+        <h2>Buku Panduan Operasional Sistem<br>Kelas Online & Rekap Tugas</h2>
+        <p>Dokumentasi resmi dan petunjuk teknis terlengkap untuk Administrator, Ustadz/Ustadzah pengampu, Wali Kelas, serta Santri PPTQ Royatul Quran.</p>
+        <div class="hero-meta">
+          <div class="hero-meta-item">📅 Tahun Ajaran: 2026/2027</div>
+          <div class="hero-meta-item">🔒 Autentikasi: PIN 6-Digit & Database Supabase</div>
+          <div class="hero-meta-item">📁 Auto-Arsip: Google Drive & Telegram</div>
+        </div>
+      </div>
+
+      <!-- 1. PENGANTAR & ARSITEKTUR -->
+      <section id="pengantar" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">📌</div>
+            <h3>1. Pengantar & Arsitektur Sistem</h3>
+          </div>
+          <span class="role-badge badge-admin">Seluruh Pengguna</span>
+        </div>
+
+        <p><strong>Kelas Online Royatul Quran</strong> adalah platform digital terpadu yang dirancang khusus untuk mengelola kegiatan belajar mengajar, pembagian tugas harian santri, penilaian otomatis, rekapitulasi nilai bertingkat, serta otomatisasi arsip berkas ke Google Drive dan forum Telegram Supergroup.</p>
+
+        <h4>Pilar Arsitektur Sistem:</h4>
+        <div class="card-grid">
+          <div class="feature-card highlight">
+            <div class="feature-card-header">
+              <span class="feature-card-icon">🗄️</span>
+              <h5>Supabase PostgreSQL</h5>
+            </div>
+            <p>Penyimpanan database relasional real-time dengan standar keamanan UUID untuk data santri, kelas, mapel, penugasan, dan pengumpulan tugas.</p>
+          </div>
+
+          <div class="feature-card highlight">
+            <div class="feature-card-header">
+              <span class="feature-card-icon">📂</span>
+              <h5>Google Drive API OAuth2</h5>
+            </div>
+            <p>Otomatis membuat struktur folder bertingkat (<code>Kelas / Mapel / Judul Tugas</code>). Menampung file PDF lembar kerja dan video besar santri.</p>
+          </div>
+
+          <div class="feature-card highlight">
+            <div class="feature-card-header">
+              <span class="feature-card-icon">📢</span>
+              <h5>Telegram Bot Supergroup</h5>
+            </div>
+            <p>Pengumuman tugas baru otomatis disiarkan ke topik <strong>General</strong>, dan notifikasi pengumpulan santri otomatis masuk ke <strong>topik mapel</strong> terkait.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. HAK AKSES & AKUN -->
+      <section id="hak-akses" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">👥</div>
+            <h3>2. Hak Akses & Autentikasi Akun</h3>
+          </div>
+          <span class="role-badge badge-admin">Keamanan Akun</span>
+        </div>
+
+        <p>Aplikasi menggunakan sistem keamanan berbasis <strong>Identitas Nomor Pokok (NIS / NIP)</strong> dan <strong>PIN Keamanan 6 Digit</strong> yang di-hash dengan enkripsi satu arah di database server.</p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Peran (Role)</th>
+                <th>Kredensial Login</th>
+                <th>Hak Akses Utama</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="role-badge badge-admin">Admin</span></td>
+                <td>NIP + PIN</td>
+                <td>Full Access: Kelola Santri, Guru, Kelas, Mapel, Kenaikan Kelas, dan Pengaturan Sistem.</td>
+              </tr>
+              <tr>
+                <td><span class="role-badge badge-walas">Wali Kelas</span></td>
+                <td>NIP + PIN</td>
+                <td>Dashboard Wali Kelas, Matrix Pantau Tugas Santri 1 Kelas, Kirim Pengingat WhatsApp ke Wali Murid.</td>
+              </tr>
+              <tr>
+                <td><span class="role-badge badge-guru">Guru / Ustadz</span></td>
+                <td>NIP + PIN</td>
+                <td>Buat Tugas Baru, Koreksi Nilai, Tolak Tugas, Input Nilai Manual/Offline, Download Rekap Nilai Excel.</td>
+              </tr>
+              <tr>
+                <td><span class="role-badge badge-murid">Santri / Murid</span></td>
+                <td>NIS + PIN</td>
+                <td>Mengerjakan Soal PG, Esai, Upload Foto LKS, Video Tugas, Cek Status Tugas & Buku Raport Nilai.</td>
+              </tr>
+              <tr>
+                <td><span class="role-badge badge-wali">Wali Murid</span></td>
+                <td>Tanpa Login (URL Khusus)</td>
+                <td>Memantau rekapitulasi pengerjaan tugas anaknya secara transparan di portal pantau kelas.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-info">
+          <span class="callout-icon">💡</span>
+          <div>
+            <strong>Alur Login Pertama Kali (Aktivasi PIN):</strong><br>
+            Bagi santri atau ustadz yang baru didaftarkan oleh admin, sistem akan mengarahkan ke layar <strong>Setup PIN Baru</strong> setelah memasukkan NIS/NIP pertama kali untuk membuat 6 digit PIN pribadi.
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. PANDUAN ADMIN -->
+      <section id="admin" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">⚙️</div>
+            <h3>3. Panduan Administrator Sekolah</h3>
+          </div>
+          <span class="role-badge badge-admin">Menu /admin</span>
+        </div>
+
+        <p>Portal Admin adalah pusat kendali data master sekolah. Akses menu ini melalui navigasi atas dengan akun role Admin.</p>
+
+        <h4>A. Manajemen Santri (Murid)</h4>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h5>Tambah Santri Manual</h5>
+              <p>Klik tombol <strong>+ Tambah Murid</strong> di tab Murid. Masukkan Nama Lengkap, NIS, NISN, NIK, No. KK, No. WhatsApp Orang Tua, dan pilih Kelas tujuan santri.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h5>Import Santri Massal (Excel / CSV)</h5>
+              <p>Gunakan tombol <strong>Bulk Import</strong> untuk mengunggah ratusan santri sekaligus dari template Excel/CSV yang sudah disediakan agar penginputan cepat.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h5>Reset PIN Santri</h5>
+              <p>Jika ada santri yang lupa PIN, Admin dapat mengklik tombol <strong>Kunci (Reset PIN)</strong> di tabel santri dan memasukkan PIN baru sementara.</p>
+            </div>
+          </div>
+        </div>
+
+        <h4>B. Manajemen Mata Pelajaran (Otomatisasi 2-Arah)</h4>
+        <div class="callout callout-success">
+          <span class="callout-icon">⚡</span>
+          <div>
+            <strong>Otomatisasi Sinkronisasi Mapel:</strong><br>
+            Saat Admin membuat mapel baru (contoh: <code>Nahwu Shorof</code>), sistem akan:
+            <ol style="margin-left: 1.25rem; margin-top: 0.35rem;">
+              <li>Membuat <strong>Topic Forum Telegram</strong> secara otomatis dengan nama mapel tersebut.</li>
+              <li>Membuat <strong>Folder Master Mapel</strong> di Google Drive sekolah.</li>
+              <li>Jika mapel dihapus di admin panel, sistem juga otomatis merapikan folder di Drive dan topik di Telegram.</li>
+            </ol>
+          </div>
+        </div>
+
+        <h4>C. Manajemen Penugasan Guru (SK Mengampu)</h4>
+        <p>Admin mengatur guru mana yang mengajar mapel apa di kelas mana:</p>
+        <ul style="margin-left: 1.5rem; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">
+          <li>Pilih ustadz/ustadzah di tab <strong>Guru & Staf</strong>.</li>
+          <li>Klik <strong>Atur Penugasan</strong>.</li>
+          <li>Centang kombinasi Kelas dan Mata Pelajaran yang diampu oleh ustadz tersebut.</li>
+          <li>Hasil penugasan ini yang menjadi dasar filter otomatis di form <em>Buat Tugas Baru</em> guru.</li>
+        </ul>
+      </section>
+
+      <!-- 4. KENAIKAN KELAS & KELULUSAN -->
+      <section id="kenaikan-kelas" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">🎓</div>
+            <h3>4. Kenaikan Kelas & Kelulusan Santri</h3>
+          </div>
+          <span class="role-badge badge-admin">Menu /admin Tab Kenaikan Kelas</span>
+        </div>
+
+        <p>Fitur pergantian tahun ajaran dirancang anti-repot dengan 4 metode mutasi kelas otomatis:</p>
+
+        <div class="card-grid">
+          <div class="feature-card highlight">
+            <div class="feature-card-header">
+              <span class="feature-card-icon">🚀</span>
+              <h5>1. Naik Kelas Serempak</h5>
+            </div>
+            <p>Memindahkan seluruh santri dari satu rombel ke jenjang berikutnya (misal: semua santri Kelas 1A langsung naik ke Kelas 2A) hanya dengan 1 kali klik.</p>
+          </div>
+
+          <div class="feature-card highlight">
+            <div class="feature-card-header">
+              <span class="feature-card-icon">⚠️</span>
+              <h5>2. Dengan Pengecualian</h5>
+            </div>
+            <p>Menaikkan kelas seluruh santri kecuali santri tertentu yang dinyatakan <em>tinggal kelas</em>. Santri yang dicentang tidak akan ikut naik jenjang.</p>
+          </div>
+
+          <div class="feature-card highlight">
+            <div class="feature-card-header">
+              <span class="feature-card-icon">🔄</span>
+              <h5>3. Pindah Rombel Manual</h5>
+            </div>
+            <p>Memindahkan santri individual ke kelas/rombel lain jika ada penataan ulang rombel belajar (misal dari Kelas 4A ke Kelas 4B).</p>
+          </div>
+
+          <div class="feature-card highlight">
+            <div class="feature-card-header">
+              <span class="feature-card-icon">🎖️</span>
+              <h5>4. Kelulusan Tingkat Akhir</h5>
+            </div>
+            <p>Memproses santri jenjang tertinggi (Kelas 6) menjadi alumni dan mengarsipkan data akademiknya secara aman.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. PANDUAN GURU -->
+      <section id="guru" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">👨‍🏫</div>
+            <h3>5. Panduan Guru & Ustadz Pengampu</h3>
+          </div>
+          <span class="role-badge badge-guru">Menu /guru</span>
+        </div>
+
+        <p>Dashboard Guru dirancang dengan sistem <strong>Folder Navigasi Hirarkis</strong> (seperti File Explorer) yang rapi dan mudah digunakan:</p>
+
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-num">📁</div>
+            <div class="step-content">
+              <h5>Level 1: Pilih Jenjang Tingkat</h5>
+              <p>Guru memilih jenjang kelas yang diajar (misal: Jenjang 6).</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">🏫</div>
+            <div class="step-content">
+              <h5>Level 2: Pilih Rombel Kelas</h5>
+              <p>Pilih rombel spesifik yang sedang aktif (misal: Kelas 6).</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">📚</div>
+            <div class="step-content">
+              <h5>Level 3: Folder Mata Pelajaran</h5>
+              <p>Masuk ke mapel yang diampu (misal: Matematika, Bahasa Arab, Tahfidz).</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">📋</div>
+            <div class="step-content">
+              <h5>Level 4: Detail Tugas & Pengumpulan</h5>
+              <p>Melihat daftar seluruh tugas yang pernah diterbitkan beserta rekap santri yang sudah maupun belum mengumpulkan.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. ALUR PEMBUATAN TUGAS -->
+      <section id="buat-tugas" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">📝</div>
+            <h3>6. Alur Pembuatan & Penerbitan Tugas Baru</h3>
+          </div>
+          <span class="role-badge badge-guru">Menu /guru/tugas/baru</span>
+        </div>
+
+        <p>Form pembuatan tugas baru telah dilengkapi dengan <strong>sinkronisasi reaktif anti-blank</strong>. Dropdown Kelas dan Mapel akan otomatis terisi sesuai penugasan guru:</p>
+
+        <h4>4 Pilihan Jenis Tugas:</h4>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Jenis Tugas</th>
+                <th>Mekanisme Kerja</th>
+                <th>Hasil Output Berkas</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>✅ Pilihan Ganda (PG)</strong></td>
+                <td>Guru membuat soal multi-pilihan (A, B, C, D) dan menentukan kunci jawaban. Nilai otomatis dihitung 0-100 saat santri selesai.</td>
+                <td>Otomatis menghasilkan <strong>File Dokumen PDF Resmi</strong> lembar jawaban santri ke Google Drive.</td>
+              </tr>
+              <tr>
+                <td><strong>📝 Soal Esai Bertahap</strong></td>
+                <td>Guru menginput nomor soal esai. Santri menjawab uraian teks satu per satu.</td>
+                <td>Jawaban teks tersimpan di sistem untuk dinilai manual oleh ustadz.</td>
+              </tr>
+              <tr>
+                <td><strong>📷 Foto Buku Tulis / LKS</strong></td>
+                <td>Santri memotret lembar tugas/LKS langsung dari kamera HP atau mengunggah gambar.</td>
+                <td>File gambar terunggah ke Google Drive & tautan dikirim ke topik mapel Telegram.</td>
+              </tr>
+              <tr>
+                <td><strong>🎥 Rekam Video Tugas</strong></td>
+                <td>Santri mengunggah rekaman video (misal: setoran hafalan / presentasi).</td>
+                <td>Video dikompresi otomatis jika &gt;40MB dan terunggah aman ke Google Drive.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout callout-success">
+          <span class="callout-icon">📢</span>
+          <div>
+            <strong>Pemberitahuan Telegram Tugas Baru:</strong><br>
+            Saat ustadz menekan tombol <strong>Terbitkan Tugas ke Kelas</strong>, notifikasi tugas baru akan <strong>langsung diposting ke topik General</strong> Telegram Supergroup sehingga seluruh santri dan wali santri segera mengetahui pengumuman tersebut.
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. PENILAIAN & TOLAK TUGAS -->
+      <section id="penilaian" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">⭐</div>
+            <h3>7. Penilaian, Koreksi & Fitur Tolak Tugas</h3>
+          </div>
+          <span class="role-badge badge-guru">Evaluasi Belajar</span>
+        </div>
+
+        <h4>A. Koreksi & Input Nilai</h4>
+        <p>Guru dapat memeriksa setiap berkas tugas yang dikumpulkan santri:</p>
+        <ul style="margin-left: 1.5rem; font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem;">
+          <li>Klik nama tugas di folder mapel.</li>
+          <li>Klik salah satu santri yang berstatus <strong>Perlu Diperiksa</strong>.</li>
+          <li>Buka tautan <em>Berkas PDF di Google Drive</em> untuk meninjau pekerjaan santri.</li>
+          <li>Ketikkan nilai angka (0 - 100) dan catatan evaluasi (misal: <em>"Bagus, tingkatkan hafalan ayat 10-15"</em>).</li>
+          <li>Klik <strong>Simpan Nilai</strong>. Status berubah menjadi <strong>Dinilai</strong>.</li>
+        </ul>
+
+        <h4>B. Fitur Tolak Tugas (Minta Perbaikan / Revisi)</h4>
+        <div class="callout callout-warning">
+          <span class="callout-icon">⚠️</span>
+          <div>
+            <strong>Kapan Fitur Tolak Digunakan?</strong><br>
+            Jika santri mengumpulkan foto yang buram/tidak terbaca, mengumpulkan file kosong, atau jawaban belum tuntas, ustadz dapat menekan tombol <strong>Tolak Tugas</strong> dan menuliskan alasannya (contoh: <em>"Foto halaman 2 blur, tolong foto ulang di tempat terang"</em>).
+            <br><br>
+            <strong>Efek Sistem:</strong> Tugas santri akan berstatus <strong>Ditolak</strong>, dan di aplikasi santri akan muncul tombol untuk <strong>Kirim Ulang Jawaban</strong> sesuai arahan ustadz.
+          </div>
+        </div>
+
+        <h4>C. Input Nilai Manual / Offline (Ujian Kertas / Setoran Hafalan)</h4>
+        <p>Untuk tugas atau ujian yang diadakan luring/tatap muka tanpa unggah berkas, guru dapat menggunakan tombol <strong>Input Nilai Offline</strong>. Guru bisa langsung menginput nilai dan catatan ke seluruh santri dalam 1 kelas sekaligus dalam satu layar tabel cepat.</p>
+      </section>
+
+      <!-- 8. PANDUAN WALI KELAS -->
+      <section id="walas" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">📋</div>
+            <h3>8. Panduan Wali Kelas (Walas)</h3>
+          </div>
+          <span class="role-badge badge-walas">Menu /walas</span>
+        </div>
+
+        <p>Portal Wali Kelas didesain khusus agar Ustadz/Ustadzah Wali Kelas dapat memantau kedisiplinan seluruh santri di kelas binaannya secara menyeluruh.</p>
+
+        <h4>Fitur Matrix Pantau Tugas Harian:</h4>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h5>Filter Tanggal & Mata Pelajaran</h5>
+              <p>Wali kelas dapat memilih tanggal hari ini atau tanggal tertentu untuk melihat seluruh tugas yang aktif pada hari tersebut.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h5>Matrix Rekapitulasi Berwarna</h5>
+              <p>
+                Tabel menampilkan seluruh santri dengan kode status:
+                <br>🟢 <strong>Hijau:</strong> Sudah Dinilai / Selesai.
+                <br>🟡 <strong>Kuning:</strong> Sudah Kumpul, Menunggu Koreksi.
+                <br>🔴 <strong>Merah:</strong> Belum Mengumpulkan Tugas.
+                <br>🟠 <strong>Oranye:</strong> Tugas Ditolak (Perlu Revisi).
+              </p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h5>Broadcast Pengingat WhatsApp Wali Murid</h5>
+              <p>Terdapat tombol instan <strong>Kirim Pengingat WA</strong> yang otomatis menyusun pesan teks santun ke nomor WhatsApp orang tua santri yang belum menyelesaikan tugas.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 9. PANDUAN SANTRI -->
+      <section id="murid" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">🎒</div>
+            <h3>9. Panduan Santri / Murid</h3>
+          </div>
+          <span class="role-badge badge-murid">Menu /murid</span>
+        </div>
+
+        <p>Santri dapat mengakses portal murid melalui HP Android, iPhone, tablet, maupun laptop dengan membuka link web dan login menggunakan NIS serta PIN.</p>
+
+        <h4>A. Memilih & Mengerjakan Tugas</h4>
+        <div class="step-list">
+          <div class="step-item">
+            <div class="step-num">1</div>
+            <div class="step-content">
+              <h5>Buka Daftar Tugas</h5>
+              <p>Di dashboard santri akan terlihat kartu tugas aktif yang dilengkapi tenggat waktu (deadline) dan nama mapel.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">2</div>
+            <div class="step-content">
+              <h5>Mengerjakan Soal Pilihan Ganda</h5>
+              <p>Pilih jawaban A, B, C, atau D. Santri dapat berpindah nomor dengan mudah. Di nomor terakhir, klik tombol <strong>Kirim Semua Jawaban</strong>.</p>
+            </div>
+          </div>
+          <div class="step-item">
+            <div class="step-num">3</div>
+            <div class="step-content">
+              <h5>Mengerjakan Tugas Foto / Video</h5>
+              <p>Klik tombol <strong>Buka Kamera / Pilih File</strong>. Ambil foto lembar kerja atau rekam video hafalan, lalu klik <strong>Kirim Tugas</strong>.</p>
+            </div>
+          </div>
+        </div>
+
+        <h4>B. Melihat Hasil Nilai & Raport Santri</h4>
+        <p>Melalui menu <strong>Nilai Saya</strong> (<code>/murid/nilai</code>), santri dapat melihat riwayat nilai seluruh tugas, catatan apresiasi atau evaluasi dari ustadz, dan mengunduh lembar PDF hasil pengerjaan.</p>
+      </section>
+
+      <!-- 10. OTOMATISASI DRIVE & TELEGRAM -->
+      <section id="otomatisasi" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">⚡</div>
+            <h3>10. Arsitektur Otomatisasi Google Drive & Telegram</h3>
+          </div>
+          <span class="role-badge badge-admin">Integrasi Sistem</span>
+        </div>
+
+        <h4>A. Struktur Folder Google Drive:</h4>
+        <pre style="background: #0f172a; color: #38bdf8; padding: 1.25rem; border-radius: var(--radius-sm); font-size: 0.85rem; overflow-x: auto; margin-bottom: 1.25rem;">
+📁 [Root Drive PPTQ Royatul Quran]
+   └── 📁 Kelas 6
+       └── 📁 Matematika
+           └── 📁 Ulangan Harian Bab 2 Pilihan Ganda
+               ├── 📄 [KORQ]_Kelas 6_Matematika_Ahmad_Fauzi.pdf
+               └── 📄 [KORQ]_Kelas 6_Matematika_Zaid_Abdullah.pdf
+        </pre>
+
+        <h4>B. Aturan Distribusi Notifikasi Telegram:</h4>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Peristiwa (Trigger)</th>
+                <th>Tujuan Topik Telegram</th>
+                <th>Isi Pesan Notifikasi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Guru Terbitkan Tugas Baru</strong></td>
+                <td><span style="color: #059669; font-weight: 700;">📢 Topik General</span></td>
+                <td>Judul tugas, kelas sasaran, mapel, tipe tugas, deadline, dan instruksi pengerjaan.</td>
+              </tr>
+              <tr>
+                <td><strong>Santri Selesai Kumpul Tugas</strong></td>
+                <td><span style="color: #0284c7; font-weight: 700;">📚 Topik Mapel Terkait</span></td>
+                <td>Nama santri, NIS, kelas, jenis tugas, waktu kumpul, skor auto-nilai (PG), dan link Google Drive.</td>
+              </tr>
+              <tr>
+                <td><strong>Upload Video Besar (&gt; 40MB)</strong></td>
+                <td><span style="color: #7c3aed; font-weight: 700;">📚 Topik Mapel Terkait</span></td>
+                <td>Tanda khusus video besar dengan link langsung ke file Drive terkompresi.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 11. FAQ & TROUBLESHOOTING -->
+      <section id="troubleshooting" class="doc-section">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-icon">❓</div>
+            <h3>11. Tanya Jawab (FAQ) & Panduan Troubleshooting</h3>
+          </div>
+          <span class="role-badge badge-admin">Bantuan Teknis</span>
+        </div>
+
+        <div class="faq-item open">
+          <button class="faq-trigger" onclick="toggleFaq(this)">
+            <span>Q: Mengapa dropdown Mata Pelajaran sempat kosong saat membuat tugas?</span>
+            <span>▾</span>
+          </button>
+          <div class="faq-body">
+            <strong>Jawaban:</strong> Masalah tersebut terjadi jika sistem penugasan guru belum disinkronkan dengan UUID kelas di database. Saat ini sistem telah diperbarui dengan sinkronisasi otomatis dan fallback berlapis sehingga dropdown dijamin selalu terisi mapel yang valid.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)">
+            <span>Q: Apa yang harus dilakukan jika santri lupa PIN?</span>
+            <span>▾</span>
+          </button>
+          <div class="faq-body">
+            <strong>Jawaban:</strong> Santri dapat melapor ke Wali Kelas atau Admin Sekolah. Admin dapat membuka menu <code>/admin</code> &rarr; tab <strong>Murid</strong> &rarr; cari nama santri &rarr; klik ikon <strong>Ganti PIN (Kunci)</strong> untuk mereset PIN santri tersebut ke PIN baru.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)">
+            <span>Q: Apakah aplikasi dapat diakses jika sinyal internet santri sedang lambat?</span>
+            <span>▾</span>
+          </button>
+          <div class="faq-body">
+            <strong>Jawaban:</strong> Ya. Aplikasi telah dilengkapi service worker PWA (Progressive Web App) dengan caching cerdas. Untuk tugas pilihan ganda, pengerjaan soal tetap berjalan mulus dan baru mengirimkan data saat santri menekan tombol simpan akhir.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-trigger" onclick="toggleFaq(this)">
+            <span>Q: Mengapa santri mendapat notifikasi tugas berstatus "Ditolak"?</span>
+            <span>▾</span>
+          </button>
+          <div class="faq-body">
+            <strong>Jawaban:</strong> Status ditolak berarti ustadz meminta santri untuk memperbaiki tugasnya (misal foto tulisan buram atau tugas belum lengkap). Santri cukup membuka kembali tugas tersebut di menu <code>/murid</code>, membaca catatan alasan penolakan, lalu mengunggah ulang tugas yang sudah diperbaiki.
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer style="text-align: center; padding: 2rem 0; color: var(--text-light); font-size: 0.8rem; border-top: 1px solid var(--border); margin-top: 3rem;">
+        <p>&copy; 2026 PPTQ Royatul Quran. Seluruh Hak Cipta Dilindungi Undang-Undang.</p>
+        <p style="margin-top: 0.25rem;">Sistem Kelas Online & Rekap Tugas Terpadu</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <script>
+    function toggleFaq(button) {
+      const item = button.parentElement;
+      item.classList.toggle('open');
+    }
+
+    function filterDocs() {
+      const input = document.getElementById('searchInput');
+      const filter = input.value.toLowerCase();
+      const sections = document.querySelectorAll('section.doc-section');
+
+      sections.forEach(sec => {
+        const text = sec.innerText.toLowerCase();
+        if (text.includes(filter)) {
+          sec.style.display = '';
+        } else {
+          sec.style.display = 'none';
+        }
+      });
+    }
+
+    // ScrollSpy for Active Sidebar Link
+    window.addEventListener('scroll', () => {
+      const sections = document.querySelectorAll('section.doc-section');
+      const navLinks = document.querySelectorAll('.nav-list li a');
+
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120;
+        if (pageYOffset >= sectionTop) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
