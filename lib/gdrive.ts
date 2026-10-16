@@ -233,18 +233,33 @@ export async function uploadTugasMurid(
 export async function createMapelFoldersForAllClasses(
   mapelNama: string,
   kelasNames: string[] = ["Kelas 1", "Kelas 2", "Kelas 3", "Kelas 4", "Kelas 5", "Kelas 6"]
-): Promise<void> {
+): Promise<{ success: boolean; createdCount: number; errors: string[] }> {
   const rootId = getRootFolderId();
-  if (!rootId) return;
+  if (!rootId) {
+    console.warn("[gdrive] Root folder ID belum dikonfigurasi.");
+    return { success: false, createdCount: 0, errors: ["Root folder ID belum dikonfigurasi."] };
+  }
 
-  for (const kelas of kelasNames) {
+  const errors: string[] = [];
+  let createdCount = 0;
+
+  // Eksekusi paralel per kelas agar cepat dan tidak terkena timeout Vercel (10 detik)
+  const tasks = kelasNames.map(async (kelas) => {
     try {
       const kelasFolderId = await getOrCreateFolder(kelas, rootId);
       if (kelasFolderId) {
-        await getOrCreateFolder(mapelNama, kelasFolderId);
+        const mapelFolderId = await getOrCreateFolder(mapelNama, kelasFolderId);
+        if (mapelFolderId) {
+          createdCount++;
+        }
       }
-    } catch (e) {
-      console.warn(`[gdrive] Gagal buat folder ${mapelNama} di ${kelas}:`, e);
+    } catch (e: any) {
+      console.warn(`[gdrive] Gagal buat folder ${mapelNama} di ${kelas}:`, e?.message || e);
+      errors.push(`${kelas}: ${e?.message || "Gagal"}`);
     }
-  }
+  });
+
+  await Promise.allSettled(tasks);
+  return { success: createdCount > 0, createdCount, errors };
 }
+

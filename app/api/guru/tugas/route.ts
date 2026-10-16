@@ -35,11 +35,30 @@ export async function POST(req: NextRequest) {
 
     // Otomatis siapkan folder di Google Drive jika terkonfigurasi
     let gdrive_folder_id = body.gdriveFolderId || null;
-    if (!gdrive_folder_id && body.kelasNama && body.mapelNama) {
+    let targetKelasNama = body.kelasNama;
+    let targetMapelNama = body.mapelNama;
+    let mapelRecord: any = null;
+
+    if (!targetKelasNama || !targetMapelNama) {
+      const [kRes, mRes] = await Promise.all([
+        supabase.from("kelas").select("nama").eq("id", kelasId).single(),
+        supabase.from("mapel").select("nama, telegram_topic_id, kode").eq("id", mapelId).single(),
+      ]);
+      if (kRes.data) targetKelasNama = kRes.data.nama;
+      if (mRes.data) {
+        targetMapelNama = mRes.data.nama;
+        mapelRecord = mRes.data;
+      }
+    } else {
+      const { data: mData } = await supabase.from("mapel").select("nama, telegram_topic_id, kode").eq("id", mapelId).single();
+      mapelRecord = mData;
+    }
+
+    if (!gdrive_folder_id && targetKelasNama && targetMapelNama) {
       try {
         const hierarchy = await getOrCreateTaskFolderHierarchy({
-          kelasNama: body.kelasNama,
-          mapelNama: body.mapelNama,
+          kelasNama: targetKelasNama,
+          mapelNama: targetMapelNama,
           tugasJudul: judul,
         });
         gdrive_folder_id = hierarchy.folderId;
@@ -69,32 +88,40 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
-    // Kirim pengumuman tugas baru ke Telegram jika terkonfigurasi
-    (async () => {
-      try {
-        const { sendTelegramMessage } = await import("@/lib/telegram");
-        const deadlineStr = new Date(deadline).toLocaleString("id-ID", {
-          timeZone: "Asia/Jakarta",
-          dateStyle: "medium",
-          timeStyle: "short",
-        });
-        const text = `📢 <b>TUGAS BARU DITERBITKAN</b>\n` +
-          `━━━━━━━━━━━━━━━━━━━━━\n` +
-          `🏫 <b>Kelas:</b> ${body.kelasNama || "Kelas"}\n` +
-          `📚 <b>Mapel:</b> ${body.mapelNama || "Mapel"}\n` +
-          `📝 <b>Judul:</b> ${judul}\n` +
-          `📌 <b>Jenis:</b> ${jenis.toUpperCase()}\n` +
-          `⏰ <b>Deadline:</b> ${deadlineStr} WIB\n` +
-          (instruksi ? `📋 <b>Instruksi:</b> <i>${instruksi}</i>\n` : "") +
-          `━━━━━━━━━━━━━━━━━━━━━\n` +
-          `<i>Silakan santri segera mengerjakan di aplikasi Kelas Online.</i>`;
-        await sendTelegramMessage(text);
-      } catch (tgErr) {
-        console.warn("[telegram new task announcement skipped]", tgErr);
+    // Kirim pengumuman tugas baru ke topik Telegram yang sesuai
+    let telegramResult = null;
+    try {
+      const { sendTelegramMessage } = await import("@/lib/telegram");
+      let threadId: number | null = null;
+      if (mapelRecord?.telegram_topic_id) {
+        const parsed = parseInt(mapelRecord.telegram_topic_id, 10);
+        if (!isNaN(parsed)) threadId = parsed;
+      } else if (mapelRecord?.kode && mapelRecord.kode.startsWith("tg:")) {
+        const parsed = parseInt(mapelRecord.kode.replace("tg:", ""), 10);
+        if (!isNaN(parsed)) threadId = parsed;
       }
-    })();
 
-    return NextResponse.json({ tugas: data }, { status: 201 });
+      const deadlineStr = new Date(deadline).toLocaleString("id-ID", {
+        timeZone: "Asia/Jakarta",
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+      const text = `📢 <b>TUGAS BARU DITERBITKAN</b>\n` +
+        `━━━━━━━━━━━━━━━━━━━━━\n` +
+        `🏫 <b>Kelas:</b> ${targetKelasNama || "Kelas"}\n` +
+        `📚 <b>Mapel:</b> ${targetMapelNama || "Mapel"}\n` +
+        `📝 <b>Judul:</b> ${judul}\n` +
+        `📌 <b>Jenis:</b> ${jenis.toUpperCase()}\n` +
+        `⏰ <b>Deadline:</b> ${deadlineStr} WIB\n` +
+        (instruksi ? `📋 <b>Instruksi:</b> <i>${instruksi}</i>\n` : "") +
+        `━━━━━━━━━━━━━━━━━━━━━\n` +
+        `<i>Silakan santri segera mengerjakan di aplikasi Kelas Online.</i>`;
+      telegramResult = await sendTelegramMessage(text, threadId);
+    } catch (tgErr) {
+      console.warn("[telegram new task announcement skipped]", tgErr);
+    }
+
+    return NextResponse.json({ tugas: data, telegram: telegramResult }, { status: 201 });
   } catch (err) {
     console.error("[guru/tugas POST]", err);
     return NextResponse.json({ error: "Gagal membuat tugas." }, { status: 500 });

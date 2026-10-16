@@ -247,7 +247,7 @@ function KerjakanTugasContent() {
 
     const autoNilai = tugas.jenis === "pg" ? calculateScorePG() : undefined;
     const pdfFileName = `Lembar_Jawaban_${currentUser?.nama.replace(/\s+/g, "_")}_${tugas.mapelNama}.pdf`;
-    let driveLink = `https://drive.google.com/file/d/pdf-${Date.now()}`;
+    let driveLink: string | null = null;
 
     // Upload ke Google Drive
     try {
@@ -321,7 +321,8 @@ function KerjakanTugasContent() {
       fileSizeMb: selectedFile ? (isLarge ? 38.5 : fileSizeMb) : 0.35,
       isLargeVideo: isLarge,
       autoNilai,
-      pdfUrl: driveLink,
+      pdfUrl: driveLink || undefined,
+      gdriveFileUrl: driveLink || undefined,
     });
 
     setIsSubmitting(false);

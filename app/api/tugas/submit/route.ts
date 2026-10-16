@@ -47,37 +47,46 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
-    // Kirim notifikasi Telegram di latar belakang jika bot token dikonfigurasi
-    (async () => {
-      try {
-        const [userRes, tugasRes] = await Promise.all([
-          supabase.from("users").select("nama, nis").eq("id", muridId).single(),
-          supabase.from("tugas").select("judul, jenis, kelas:kelas_id(nama), mapel:mapel_id(nama)").eq("id", tugasId).single(),
-        ]);
+    // Kirim notifikasi Telegram ke topik mapel yang sesuai
+    let telegramResult = null;
+    try {
+      const [userRes, tugasRes] = await Promise.all([
+        supabase.from("users").select("nama, nis").eq("id", muridId).single(),
+        supabase.from("tugas").select("judul, jenis, kelas:kelas_id(nama), mapel:mapel_id(id, nama, telegram_topic_id, kode)").eq("id", tugasId).single(),
+      ]);
 
-        const u = userRes.data;
-        const t = tugasRes.data as any;
+      const u = userRes.data;
+      const t = tugasRes.data as any;
 
-        if (u && t) {
-          await sendTelegramSubmission({
-            namaMurid: u.nama,
-            nis: u.nis,
-            kelasNama: t.kelas?.nama || "Kelas",
-            mapelNama: t.mapel?.nama || "Mapel",
-            tugasJudul: t.judul,
-            jenisTugas: t.jenis || "tugas",
-            fileName: fileName || null,
-            fileUrl: finalDriveUrl,
-            autoNilai: autoNilai ?? null,
-            isLargeVideo: !!isLargeVideo,
-          });
+      if (u && t) {
+        let threadId: number | null = null;
+        if (t.mapel?.telegram_topic_id) {
+          const parsed = parseInt(t.mapel.telegram_topic_id, 10);
+          if (!isNaN(parsed)) threadId = parsed;
+        } else if (t.mapel?.kode && t.mapel.kode.startsWith("tg:")) {
+          const parsed = parseInt(t.mapel.kode.replace("tg:", ""), 10);
+          if (!isNaN(parsed)) threadId = parsed;
         }
-      } catch (tgErr) {
-        console.warn("[telegram notification error]", tgErr);
-      }
-    })();
 
-    return NextResponse.json({ pengumpulan: data }, { status: 200 });
+        telegramResult = await sendTelegramSubmission({
+          namaMurid: u.nama,
+          nis: u.nis,
+          kelasNama: t.kelas?.nama || "Kelas",
+          mapelNama: t.mapel?.nama || "Mapel",
+          tugasJudul: t.judul,
+          jenisTugas: t.jenis || "tugas",
+          fileName: fileName || null,
+          fileUrl: finalDriveUrl,
+          autoNilai: autoNilai ?? null,
+          isLargeVideo: !!isLargeVideo,
+          threadId,
+        });
+      }
+    } catch (tgErr) {
+      console.warn("[telegram notification error]", tgErr);
+    }
+
+    return NextResponse.json({ pengumpulan: data, telegram: telegramResult }, { status: 200 });
   } catch (err) {
     console.error("[tugas/submit]", err);
     return NextResponse.json({ error: "Gagal menyimpan jawaban." }, { status: 500 });

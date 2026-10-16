@@ -65,7 +65,9 @@ export interface Mapel {
   guruId?: string | null;
   guruNama?: string | null;
   telegramTopic?: string | null;
+  telegramTopicId?: string | null;
 }
+
 
 export interface Assignment {
   id?: string;
@@ -498,12 +500,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updatePenugasanGuru = useCallback(async (guruId: string, penugasan: any[]) => {
+    // Optimistic update pada usersList agar UI langsung berubah instan
+    setUsersList((prev) =>
+      prev.map((u) => (u.id === guruId ? { ...u, penugasan } : u))
+    );
     await apiFetch("/api/admin/assignments", {
       method: "PUT",
       body: JSON.stringify({ guruId, assignments: penugasan }),
     });
     await refreshData();
   }, [refreshData]);
+
 
   const naikKelasSerempak = useCallback(async (kelasAsalId: string, kelasTargetId: string, muridTinggalIds?: string[]) => {
     if (muridTinggalIds && muridTinggalIds.length > 0) {

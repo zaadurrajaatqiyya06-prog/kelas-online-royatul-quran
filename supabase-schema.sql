@@ -62,8 +62,14 @@ CREATE TABLE IF NOT EXISTS public.mapel (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   nama TEXT NOT NULL UNIQUE,
   kode TEXT,
+  telegram_topic_id TEXT,
+  gdrive_folder_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Migration untuk database yang sudah berjalan:
+ALTER TABLE public.mapel ADD COLUMN IF NOT EXISTS telegram_topic_id TEXT;
+ALTER TABLE public.mapel ADD COLUMN IF NOT EXISTS gdrive_folder_id TEXT;
 
 -- ==============================================================================
 -- TABEL: GURU_MAPEL_KELAS (Penugasan Guru)

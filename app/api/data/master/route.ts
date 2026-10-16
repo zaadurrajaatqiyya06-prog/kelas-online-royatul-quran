@@ -27,10 +27,49 @@ export async function GET(req: NextRequest) {
     if (nilaiManualRes.error) throw nilaiManualRes.error;
 
     // Transform ke format yang dipakai store (compatible dengan mock-data types)
-    const users = (usersRes.data || []).map(transformUser);
-    const kelas = (kelasRes.data || []).map(transformKelas);
-    const mapel = (mapelRes.data || []).map((m: any) => ({ id: m.id, nama: m.nama, kode: m.kode }));
     const assignments = (assignRes.data || []).map(transformAssignment);
+
+    // Kumpulkan penugasan per guru untuk ditautkan langsung ke profil masing-masing user guru
+    const assignmentsByGuru = new Map<string, any[]>();
+    for (const a of assignments) {
+      if (a.guruId) {
+        if (!assignmentsByGuru.has(a.guruId)) {
+          assignmentsByGuru.set(a.guruId, []);
+        }
+        assignmentsByGuru.get(a.guruId)!.push({
+          id: a.id,
+          mapelId: a.mapelId,
+          mapelNama: a.mapelNama,
+          kelasId: a.kelasId,
+          kelasNama: a.kelasNama,
+        });
+      }
+    }
+
+    const users = (usersRes.data || []).map((u: any) => {
+      const transformed = transformUser(u);
+      return {
+        ...transformed,
+        penugasan: assignmentsByGuru.get(u.id) || [],
+      };
+    });
+
+    const kelas = (kelasRes.data || []).map(transformKelas);
+
+    const mapel = (mapelRes.data || []).map((m: any) => {
+      let telegramTopicId = m.telegram_topic_id || null;
+      if (!telegramTopicId && m.kode && m.kode.startsWith("tg:")) {
+        telegramTopicId = m.kode.replace("tg:", "");
+      }
+      return {
+        id: m.id,
+        nama: m.nama,
+        kode: m.kode && !m.kode.startsWith("tg:") ? m.kode : null,
+        telegramTopic: m.nama,
+        telegramTopicId: telegramTopicId ? String(telegramTopicId) : null,
+      };
+    });
+
     const tugasList = (tugasRes.data || []).map(transformTugas);
     const pengumpulanList = (pengumpulanRes.data || []).map(transformPengumpulan);
     const nilaiManualList = (nilaiManualRes.data || []).map(transformNilaiManual);

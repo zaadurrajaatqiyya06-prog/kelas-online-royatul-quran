@@ -48,6 +48,7 @@ export default function AdminPage() {
     usersList,
     kelasList,
     mapelList,
+    assignmentList,
     addUser,
     importUsersBatch,
     updateUser,
@@ -65,6 +66,8 @@ export default function AdminPage() {
 
   const [selectedGuruForAssignment, setSelectedGuruForAssignment] = useState<User | null>(null);
   const [tempPenugasan, setTempPenugasan] = useState<PenugasanGuru[]>([]);
+  const [isSavingAssignment, setIsSavingAssignment] = useState(false);
+
 
   // Modal Ganti PIN Manual State
   const [pinModalUser, setPinModalUser] = useState<User | null>(null);
@@ -1190,7 +1193,17 @@ export default function AdminPage() {
               <button
                 onClick={() => {
                   setSelectedGuruForAssignment(selectedGuruDetail);
-                  setTempPenugasan(selectedGuruDetail.penugasan || []);
+                  const initialPenugasan = (selectedGuruDetail.penugasan && selectedGuruDetail.penugasan.length > 0)
+                    ? selectedGuruDetail.penugasan
+                    : assignmentList
+                        .filter((a) => a.guruId === selectedGuruDetail.id)
+                        .map((a) => ({
+                          mapelId: a.mapelId,
+                          mapelNama: a.mapelNama,
+                          kelasId: a.kelasId,
+                          kelasNama: a.kelasNama,
+                        }));
+                  setTempPenugasan(initialPenugasan);
                   setSelectedGuruDetail(null);
                 }}
                 className="flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-3 text-xs font-bold text-white hover:bg-blue-700"
@@ -1397,13 +1410,36 @@ export default function AdminPage() {
               ))}
             </div>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setSelectedGuruForAssignment(null)} className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">Batal</button>
-              <button onClick={() => {
-                updatePenugasanGuru(selectedGuruForAssignment.id, tempPenugasan);
-                setSelectedGuruForAssignment(null);
-                alert(`Penugasan mengajar untuk ${selectedGuruForAssignment.nama} berhasil disimpan!`);
-              }} className="flex-1 rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white shadow-md shadow-blue-600/30 hover:bg-blue-700">
-                Simpan Penugasan
+              <button
+                type="button"
+                disabled={isSavingAssignment}
+                onClick={() => setSelectedGuruForAssignment(null)}
+                className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={isSavingAssignment}
+                onClick={async () => {
+                  try {
+                    setIsSavingAssignment(true);
+                    await updatePenugasanGuru(selectedGuruForAssignment.id, tempPenugasan);
+                    setSelectedGuruForAssignment(null);
+                    alert(`Penugasan mengajar untuk ${selectedGuruForAssignment.nama} berhasil disimpan!`);
+                  } catch (err: any) {
+                    alert("Gagal menyimpan penugasan: " + (err?.message || "Terjadi kesalahan."));
+                  } finally {
+                    setIsSavingAssignment(false);
+                  }
+                }}
+                className={`flex-1 rounded-xl py-2.5 text-xs font-bold text-white shadow-md transition ${
+                  isSavingAssignment
+                    ? "bg-blue-400 cursor-not-allowed"
+                    : "bg-blue-600 shadow-blue-600/30 hover:bg-blue-700"
+                }`}
+              >
+                {isSavingAssignment ? "Menyimpan..." : "Simpan Penugasan"}
               </button>
             </div>
           </div>
