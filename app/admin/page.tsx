@@ -54,7 +54,9 @@ export default function AdminPage() {
     deleteUser,
     updatePenugasanGuru,
     addKelas,
+    deleteKelas,
     addMapel,
+    deleteMapel,
     naikKelasSerempak,
     pindahKelasManual,
     kelulusanSiswa,
@@ -811,21 +813,51 @@ export default function AdminPage() {
               </button>
             </div>
             <div className="space-y-2">
-              {kelasList.map((k) => (
-                <div key={k.id} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900">{k.nama}</h4>
-                    <p className="mt-0.5 text-[11px] text-slate-500">
-                      Wali Kelas: <span className="font-semibold text-purple-700">{k.waliNama}</span>
-                    </p>
+              {kelasList.map((k) => {
+                const jumlahMurid = allMurid.filter((m) => m.kelasId === k.id).length;
+                return (
+                  <div key={k.id} className="group flex items-center justify-between rounded-2xl border border-slate-100 bg-white p-4 shadow-sm hover:border-amber-200 hover:shadow-md transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                        <GraduationCap className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">{k.nama}</h4>
+                        <p className="mt-0.5 text-[11px] text-slate-500">
+                          Wali: <span className="font-semibold text-purple-700">{k.waliNama || "Belum diatur"}</span>
+                          {" · "}
+                          <span className="font-semibold text-slate-700">{jumlahMurid} Murid</span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 border border-emerald-100">
+                        {jumlahMurid} Siswa
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (jumlahMurid > 0) {
+                            alert(`Tidak dapat menghapus "${k.nama}" karena masih ada ${jumlahMurid} murid di dalamnya. Pindahkan atau hapus murid terlebih dahulu.`);
+                            return;
+                          }
+                          if (confirm(`Hapus kelas "${k.nama}"? Tindakan ini tidak dapat dibatalkan.`)) {
+                            deleteKelas(k.id);
+                          }
+                        }}
+                        className="flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700 transition opacity-0 group-hover:opacity-100"
+                        title="Hapus Kelas"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                      {allMurid.filter((m) => m.kelasId === k.id).length} Murid
-                    </span>
-                  </div>
+                );
+              })}
+              {kelasList.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-xs text-slate-400">
+                  Belum ada kelas. Klik "Tambah Kelas".
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
@@ -847,20 +879,34 @@ export default function AdminPage() {
                 <span>Tambah Mapel</span>
               </button>
             </div>
-            <p className="text-[11px] text-slate-500 leading-relaxed">
-              Daftar mata pelajaran sekolah. Guru pengampu diatur di menu <strong>Guru</strong> melalui tombol "Atur Mapel &amp; Kelas".
-            </p>
+            <div className="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2.5 text-[11px] text-blue-700 leading-relaxed">
+              <span className="font-bold">ℹ️ Info:</span> Guru pengampu diatur di menu{" "}
+              <button onClick={() => setActiveTab("guru")} className="font-bold underline underline-offset-2">Guru</button>{" "}
+              → klik guru → <strong>Atur Mapel &amp; Kelas</strong>.
+            </div>
             <div className="space-y-2">
               {mapelList.map((m, idx) => (
-                <div key={m.id} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700 font-black text-sm">
+                <div key={m.id} className="group rounded-2xl border border-slate-100 bg-white p-4 shadow-sm flex items-center gap-3 hover:border-blue-200 hover:shadow-md transition-all">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-black text-sm shadow-sm">
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-bold text-slate-900">{m.nama}</h4>
-                    <p className="text-[10px] text-slate-400">Telegram Topic: #{m.telegramTopic}</p>
+                    {m.telegramTopic && (
+                      <p className="text-[10px] text-slate-400 mt-0.5">📡 Telegram Topic: #{m.telegramTopic}</p>
+                    )}
                   </div>
-                  <BookOpen className="h-4 w-4 text-slate-300 shrink-0" />
+                  <button
+                    onClick={() => {
+                      if (confirm(`Hapus mata pelajaran "${m.nama}"?\nSemua penugasan guru untuk mapel ini juga akan terhapus. Lanjutkan?`)) {
+                        deleteMapel(m.id);
+                      }
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl border border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700 transition opacity-0 group-hover:opacity-100 shrink-0"
+                    title="Hapus Mata Pelajaran"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               ))}
               {mapelList.length === 0 && (

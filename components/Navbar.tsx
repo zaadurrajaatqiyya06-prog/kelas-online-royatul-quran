@@ -4,7 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/lib/store";
-import { LogOut, BookOpen, ShieldCheck, GraduationCap } from "lucide-react";
+import { LogOut, BookOpen } from "lucide-react";
+
+const ROLE_CONFIG: Record<string, { label: string; color: string }> = {
+  murid: { label: "Murid", color: "bg-emerald-100 text-emerald-800" },
+  walas: { label: "Wali Kelas", color: "bg-purple-100 text-purple-800" },
+  guru: { label: "Guru", color: "bg-blue-100 text-blue-800" },
+  admin: { label: "Admin", color: "bg-amber-100 text-amber-900 border border-amber-300" },
+};
 
 export function AppNavbar() {
   const { currentUser, logout } = useApp();
@@ -15,42 +22,58 @@ export function AppNavbar() {
     router.push("/login");
   };
 
-  const getRoleBadge = () => {
-    if (!currentUser) return null;
-    switch (currentUser.role) {
-      case "murid":
-        return <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-800">Murid • {currentUser.kelasNama}</span>;
-      case "walas":
-        return <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-800">Wali Kelas</span>;
-      case "guru":
-        return <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-800">Guru</span>;
-      case "admin":
-        return <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 border border-amber-300">Administrator</span>;
-      default:
-        return null;
-    }
-  };
+  const roleConfig = currentUser ? ROLE_CONFIG[currentUser.role] : null;
+  const firstName = currentUser?.nama?.split(" ")[0] || "";
+  const avatarLetter = currentUser?.nama?.charAt(0)?.toUpperCase() || "?";
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100 bg-white/95 px-4 py-3 backdrop-blur-md">
-      <Link href={currentUser ? `/${currentUser.role}` : "/"} className="flex items-center gap-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-sm shadow-emerald-200">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-100/80 bg-white/96 px-4 py-2.5 backdrop-blur-xl shadow-sm shadow-slate-100/60">
+      {/* Logo */}
+      <Link
+        href={currentUser ? `/${currentUser.role}` : "/"}
+        className="flex items-center gap-2.5 min-w-0"
+      >
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 text-white shadow-md shadow-emerald-200">
           <BookOpen className="h-5 w-5" />
         </div>
-        <div>
-          <h1 className="text-sm font-bold tracking-tight text-slate-900 leading-tight">Royatul Quran</h1>
-          <p className="text-[10px] text-slate-500">Kelas Online & Rekap Tugas</p>
+        <div className="min-w-0">
+          <p className="text-sm font-extrabold tracking-tight text-slate-900 leading-none">
+            Royatul Quran
+          </p>
+          <p className="text-[10px] text-slate-400 font-medium leading-none mt-0.5 hidden sm:block">
+            Kelas Online &amp; Rekap Tugas
+          </p>
         </div>
       </Link>
 
-      <div className="flex items-center gap-2">
+      {/* Right side */}
+      <div className="flex items-center gap-2 shrink-0">
         {currentUser ? (
           <>
-            <div className="hidden sm:block">{getRoleBadge()}</div>
+            {/* Role badge — hidden on mobile */}
+            {roleConfig && (
+              <span
+                className={`hidden sm:inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${roleConfig.color}`}
+              >
+                {roleConfig.label}
+              </span>
+            )}
+
+            {/* User avatar + name */}
+            <div className="flex items-center gap-1.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-slate-200 to-slate-300 text-slate-700 font-bold text-xs shrink-0">
+                {avatarLetter}
+              </div>
+              <span className="hidden sm:block text-xs font-semibold text-slate-700 max-w-[100px] truncate">
+                {firstName}
+              </span>
+            </div>
+
+            {/* Logout */}
             <button
               onClick={handleLogout}
               title="Keluar"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-red-50 hover:text-red-500 transition-colors"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -58,7 +81,7 @@ export function AppNavbar() {
         ) : (
           <Link
             href="/login"
-            className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
+            className="rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm shadow-emerald-200 hover:bg-emerald-700 transition"
           >
             Masuk
           </Link>
