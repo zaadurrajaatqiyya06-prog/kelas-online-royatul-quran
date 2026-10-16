@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useApp } from "@/lib/store";
@@ -23,31 +23,68 @@ export default function BuatTugasBaruPage() {
   const router = useRouter();
   const { currentUser, kelasList, mapelList, assignmentList, addTugas } = useApp();
 
-  // Assignments for this guru
-  const myAssignments = assignmentList.filter((a) => a.guruId === currentUser?.id);
-  const teacherAssignments = myAssignments.length > 0 ? myAssignments : null;
+  // Assignments guru saat ini
+  const myAssignments = useMemo(
+    () => (assignmentList || []).filter((a) => a.guruId === currentUser?.id),
+    [assignmentList, currentUser?.id]
+  );
+  const hasTeacherAssignments = myAssignments.length > 0;
 
-  // Kelas yang diampu oleh guru ini
-  const allowedKelasList = teacherAssignments
-    ? kelasList.filter((k) => teacherAssignments.some((p) => p.kelasId === k.id))
-    : kelasList;
+  // Kelas yang diampu oleh guru ini (dengan fallback ke kelasList jika belum ada batasan khusus)
+  const allowedKelasList = useMemo(() => {
+    if (!hasTeacherAssignments) return kelasList;
+    const filtered = kelasList.filter((k) => myAssignments.some((p) => p.kelasId === k.id));
+    return filtered.length > 0 ? filtered : kelasList;
+  }, [hasTeacherAssignments, myAssignments, kelasList]);
 
   const [judul, setJudul] = useState("");
-  const [kelasId, setKelasId] = useState(allowedKelasList[0]?.id || "k-6");
+  const [kelasId, setKelasId] = useState("");
 
   // Mapel yang diampu oleh guru ini di kelas yang sedang dipilih
-  const allowedMapelList = teacherAssignments
-    ? mapelList.filter((m) =>
-        teacherAssignments.some((p) => p.kelasId === kelasId && p.mapelId === m.id)
-      )
-    : mapelList;
+  const allowedMapelList = useMemo(() => {
+    if (!hasTeacherAssignments) return mapelList;
+    // 1. Cek mapel yang di-assign untuk kelas yang sedang dipilih
+    const filteredForClass = mapelList.filter((m) =>
+      myAssignments.some((p) => p.kelasId === kelasId && p.mapelId === m.id)
+    );
+    if (filteredForClass.length > 0) return filteredForClass;
 
-  const [mapelId, setMapelId] = useState(allowedMapelList[0]?.id || mapelList[0]?.id || "m-indo");
+    // 2. Fallback: semua mapel yang diampu oleh guru ini di kelas manapun
+    const teacherMapels = mapelList.filter((m) =>
+      myAssignments.some((p) => p.mapelId === m.id)
+    );
+    if (teacherMapels.length > 0) return teacherMapels;
+
+    // 3. Fallback terakhir: semua mapel yang ada agar dropdown tidak pernah blank
+    return mapelList;
+  }, [hasTeacherAssignments, myAssignments, mapelList, kelasId]);
+
+  const [mapelId, setMapelId] = useState("");
+
+  // Otomatis sinkronkan kelasId saat daftar kelas tersedia
+  useEffect(() => {
+    if (allowedKelasList.length > 0) {
+      if (!kelasId || !allowedKelasList.some((k) => k.id === kelasId)) {
+        setKelasId(allowedKelasList[0].id);
+      }
+    }
+  }, [allowedKelasList, kelasId]);
+
+  // Otomatis sinkronkan mapelId saat daftar mapel tersedia/berubah
+  useEffect(() => {
+    if (allowedMapelList.length > 0) {
+      if (!mapelId || !allowedMapelList.some((m) => m.id === mapelId)) {
+        setMapelId(allowedMapelList[0].id);
+      }
+    }
+  }, [allowedMapelList, mapelId]);
+
   const [jenis, setJenis] = useState<JenisTugas>("pg");
   const [deadlineDate, setDeadlineDate] = useState("2026-10-20");
   const [deadlineTime, setDeadlineTime] = useState("23:59");
   const [instruksi, setInstruksi] = useState("Pilihlah salah satu jawaban yang paling tepat. Hasil pengerjaan akan otomatis terkonversi menjadi file PDF dan tersimpan di Google Drive.");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   // Soal Pilihan Ganda (PG) State
   const [soalPGList, setSoalPGList] = useState<SoalPG[]>([
@@ -133,10 +170,20 @@ export default function BuatTugasBaruPage() {
     setSoalEsaiList(filtered.map((s, idx) => ({ ...s, nomor: idx + 1 })));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!judul.trim() || !instruksi.trim()) {
       alert("Mohon lengkapi judul dan instruksi tugas.");
+      return;
+    }
+
+    if (!kelasId) {
+      alert("Mohon pilih kelas tujuan tugas.");
+      return;
+    }
+
+    if (!mapelId) {
+      alert("Mohon pilih mata pelajaran tugas.");
       return;
     }
 
@@ -150,32 +197,50 @@ export default function BuatTugasBaruPage() {
       }
     }
 
+    if (jenis === "esai") {
+      const hasEmpty = soalEsaiList.some((s) => !s.pertanyaan.trim());
+      if (hasEmpty) {
+        alert("Mohon lengkapi seluruh pertanyaan soal esai.");
+        return;
+      }
+    }
+
+    if (!currentUser?.id) {
+      alert("Sesi login Anda tidak valid atau telah berakhir. Silakan login kembali.");
+      router.push("/login");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const selectedKelas = kelasList.find((k) => k.id === kelasId);
-    const selectedMapel = mapelList.find((m) => m.id === mapelId);
+    try {
+      const selectedKelas = kelasList.find((k) => k.id === kelasId);
+      const selectedMapel = mapelList.find((m) => m.id === mapelId);
+      const deadlineISO = `${deadlineDate}T${deadlineTime}:00`;
 
-    const deadlineISO = `${deadlineDate}T${deadlineTime}:00`;
+      await addTugas({
+        judul: judul.trim(),
+        kelasId,
+        kelasNama: selectedKelas?.nama || "Kelas",
+        mapelId,
+        mapelNama: selectedMapel?.nama || "Mata Pelajaran",
+        guruId: currentUser.id,
+        guruNama: currentUser.nama || "Guru",
+        jenis,
+        instruksi: instruksi.trim(),
+        deadline: deadlineISO,
+        soalPGList: jenis === "pg" ? soalPGList : undefined,
+        soalEsaiList: jenis === "esai" ? soalEsaiList : undefined,
+      });
 
-    addTugas({
-      judul: judul.trim(),
-      kelasId,
-      kelasNama: selectedKelas?.nama || "Kelas 6",
-      mapelId,
-      mapelNama: selectedMapel?.nama || "Bahasa Indonesia",
-      guruId: currentUser?.id || "g-1",
-      guruNama: currentUser?.nama || "Ustadz Zaadurraja Atqiyya",
-      jenis,
-      instruksi: instruksi.trim(),
-      deadline: deadlineISO,
-      soalPGList: jenis === "pg" ? soalPGList : undefined,
-      soalEsaiList: jenis === "esai" ? soalEsaiList : undefined,
-    });
-
-    setTimeout(() => {
-      setIsSubmitting(false);
+      alert("✅ Berhasil! Tugas baru berhasil diterbitkan.");
       router.push("/guru");
-    }, 500);
+    } catch (err: any) {
+      console.error("Gagal membuat tugas:", err);
+      alert("❌ Gagal menerbitkan tugas: " + (err?.message || "Terjadi kesalahan pada sistem."));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -207,44 +272,52 @@ export default function BuatTugasBaruPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Kelas Tujuan {teacherAssignments && <span className="text-emerald-700 font-bold">✓ (Sesuai Penugasan)</span>}
+                Kelas Tujuan {hasTeacherAssignments && <span className="text-emerald-700 font-bold">✓ (Sesuai Penugasan)</span>}
               </label>
               <select
                 value={kelasId}
                 onChange={(e) => {
                   const newKId = e.target.value;
                   setKelasId(newKId);
-                  const matchingMapels = teacherAssignments
+                  const matchingMapels = hasTeacherAssignments
                     ? mapelList.filter((m) =>
-                        teacherAssignments.some((p) => p.kelasId === newKId && p.mapelId === m.id)
+                        myAssignments.some((p) => p.kelasId === newKId && p.mapelId === m.id)
                       )
                     : mapelList;
                   if (matchingMapels[0]) setMapelId(matchingMapels[0].id);
                 }}
                 className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 bg-white focus:border-emerald-500 focus:outline-none"
               >
-                {allowedKelasList.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama}
-                  </option>
-                ))}
+                {allowedKelasList.length === 0 ? (
+                  <option value="" disabled>-- Memuat kelas... --</option>
+                ) : (
+                  allowedKelasList.map((k) => (
+                    <option key={k.id} value={k.id}>
+                      {k.nama}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Mata Pelajaran {teacherAssignments && <span className="text-emerald-700 font-bold">✓ (Diampu)</span>}
+                Mata Pelajaran {hasTeacherAssignments && <span className="text-emerald-700 font-bold">✓ (Diampu)</span>}
               </label>
               <select
                 value={mapelId}
                 onChange={(e) => setMapelId(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 p-2.5 text-xs text-slate-900 bg-white focus:border-emerald-500 focus:outline-none"
               >
-                {allowedMapelList.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.nama}
-                  </option>
-                ))}
+                {allowedMapelList.length === 0 ? (
+                  <option value="" disabled>-- Memuat mapel... --</option>
+                ) : (
+                  allowedMapelList.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nama}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
           </div>
