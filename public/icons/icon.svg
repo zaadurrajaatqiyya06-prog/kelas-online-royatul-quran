@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064e3b" />
+      <stop offset="50%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#0f766e" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="50%" stop-color="#facc15" />
+      <stop offset="100%" stop-color="#ca8a04" />
+    </linearGradient>
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)" />
+
+  <!-- Outer Ring / Border Accent -->
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="none" stroke="url(#goldGrad)" stroke-width="4" stroke-opacity="0.4" />
+
+  <!-- Glowing Aura -->
+  <circle cx="256" cy="230" r="160" fill="#facc15" opacity="0.08" />
+  <circle cx="256" cy="230" r="110" fill="#ffffff" opacity="0.1" />
+
+  <!-- Crescent & Star Accent -->
+  <g transform="translate(256, 110) scale(0.65)" filter="url(#shadow)">
+    <!-- Crescent -->
+    <path d="M 0,-40 A 40 40 0 1 0 35,25 A 32 32 0 1 1 5,-35 A 40 40 0 0 0 0,-40 Z" fill="url(#goldGrad)" />
+    <!-- Star -->
+    <polygon points="18,-15 22,-3 34,-3 24,5 28,17 18,10 8,17 12,5 2,-3 14,-3" fill="url(#goldGrad)" />
+  </g>
+
+  <!-- Open Quran / Book -->
+  <g transform="translate(256, 260)" filter="url(#shadow)">
+    <!-- Left Page -->
+    <path d="M -8,10 C -50,-15 -110,-10 -150,15 L -140,85 C -105,65 -50,60 -8,85 Z" fill="url(#bookGrad)" stroke="#cbd5e1" stroke-width="2" />
+    <!-- Right Page -->
+    <path d="M 8,10 C 50,-15 110,-10 150,15 L 140,85 C 105,65 50,60 8,85 Z" fill="url(#bookGrad)" stroke="#cbd5e1" stroke-width="2" />
+    <!-- Spine / Center Ridge -->
+    <path d="M -8,10 L 8,10 L 8,85 L -8,85 Z" fill="#047857" />
+    <!-- Gold Page Edge Accents -->
+    <path d="M -150,15 L -140,85" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round" />
+    <path d="M 150,15 L 140,85" stroke="url(#goldGrad)" stroke-width="3" stroke-linecap="round" />
+
+    <!-- Quran Text Lines (Stylized Calligraphy) -->
+    <path d="M -125,30 C -90,20 -50,22 -25,35" stroke="#059669" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+    <path d="M -120,48 C -85,38 -50,40 -25,52" stroke="#059669" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+    <path d="M -115,66 C -80,56 -50,58 -25,70" stroke="#059669" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+
+    <path d="M 25,35 C 50,22 90,20 125,30" stroke="#059669" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+    <path d="M 25,52 C 50,40 85,38 120,48" stroke="#059669" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+    <path d="M 25,70 C 50,58 80,56 115,66" stroke="#059669" stroke-width="3.5" stroke-linecap="round" opacity="0.75" />
+
+    <!-- Rihal / Wooden Book Stand (X-Shape below) -->
+    <path d="M -90,82 L -20,135 L 20,135 L 90,82 L 75,98 L 15,142 L -15,142 L -75,98 Z" fill="url(#goldGrad)" opacity="0.9" />
+    <path d="M -70,140 L 0,85 L 70,140 L 50,145 L 0,105 L -50,145 Z" fill="#92400e" opacity="0.85" />
+  </g>
+
+  <!-- Typography: App Name -->
+  <text x="256" y="445" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">
+    ROYATUL QUR'AN
+  </text>
+  <text x="256" y="475" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="url(#goldGrad)" text-anchor="middle" letter-spacing="6">
+    KELAS ONLINE
+  </text>
+</svg>

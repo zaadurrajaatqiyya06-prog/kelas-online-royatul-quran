@@ -1,0 +1,50 @@
+{
+  "name": "Kelas Online Royatul Quran",
+  "short_name": "Royatul Quran",
+  "description": "Aplikasi Pengumpulan dan Rekap Tugas Terpusat Royatul Quran",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#064e3b",
+  "theme_color": "#059669",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Portal Santri",
+      "url": "/murid",
+      "description": "Buka dashboard tugas santri"
+    },
+    {
+      "name": "Portal Wali Kelas",
+      "url": "/walas",
+      "description": "Buka monitoring tugas kelas"
+    },
+    {
+      "name": "Portal Guru",
+      "url": "/guru",
+      "description": "Kelola tugas dan penilaian"
+    }
+  ]
+}
