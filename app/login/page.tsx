@@ -4,7 +4,17 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/lib/store";
 import { AppNavbar } from "@/components/Navbar";
-import { Lock, AlertCircle, KeyRound, Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
+import {
+  Lock,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Loader2,
+  CheckCircle2,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 type PageMode = "login" | "setup-pin";
 
@@ -28,6 +38,9 @@ export default function LoginPage() {
   const [confirmPin, setConfirmPin] = useState("");
   const [setupDone, setSetupDone] = useState(false);
 
+  // Testing accounts collapsible
+  const [showTestAccounts, setShowTestAccounts] = useState(false);
+
   const handleLogin = async (e?: React.FormEvent) => {
     if (e) {
       e.preventDefault();
@@ -48,14 +61,12 @@ export default function LoginPage() {
       }
 
       if (result.needsSetupPin) {
-        // First-time login: redirect to PIN setup
         setSetupUserId(result.userId || "");
         setSetupNama(result.nama || "");
         setPageMode("setup-pin");
         return;
       }
 
-      // Successful login → redirect by role (use window.location for robust mobile navigation)
       const user = result.user || JSON.parse(localStorage.getItem("korq_session") || "{}");
       const target =
         user.role === "murid"
@@ -89,7 +100,6 @@ export default function LoginPage() {
       const result = await setupPin(setupUserId, newPin);
       if (result.error) { setError(result.error); return; }
       setSetupDone(true);
-      // After 2s, go back to login
       setTimeout(() => {
         setPageMode("login");
         setPin("");
@@ -104,240 +114,260 @@ export default function LoginPage() {
     }
   };
 
+  const fillTestAccount = (id: string, pinVal: string) => {
+    setIdNumber(id);
+    setPin(pinVal);
+    setError("");
+    setShowTestAccounts(false);
+  };
+
+  const testAccounts = [
+    { label: "Admin", id: "admin", role: "Panel Pengelola" },
+    { label: "Wali Kelas", id: "19850101", role: "Portal Walas" },
+    { label: "Santri", id: "2024001", role: "Dashboard Murid" },
+    { label: "Guru", id: "19900202", role: "Dashboard Guru" },
+  ];
+
   return (
-    <div className="flex flex-1 flex-col pb-12">
+    <div className="flex flex-1 flex-col bg-slate-50">
       <AppNavbar />
 
-      <div className="px-6 pt-8 pb-4 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 shadow-lg shadow-emerald-600/30">
-          <KeyRound className="h-7 w-7 text-white" />
-        </div>
-        <h1 className="mt-3 text-xl font-black tracking-tight text-slate-900">
-          {pageMode === "login" ? "Masuk Akun" : "Buat PIN Baru"}
-        </h1>
-        <p className="mt-1 text-xs text-slate-500">
-          {pageMode === "login"
-            ? "Kelas Online Royatul Quran"
-            : `Hai, ${setupNama}! Buat PIN untuk login berikutnya.`}
-        </p>
-      </div>
+      {/* ── Centered outer shell ── */}
+      <div className="flex flex-1 items-center justify-center px-4 py-8 sm:py-12">
+        <div className="w-full max-w-md space-y-4">
 
-      <div className="px-6 mt-2">
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-4 flex items-start gap-2 rounded-xl bg-red-50 p-3 text-xs text-red-700 border border-red-200">
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-500 mt-0.5" />
-            <span>{error}</span>
+          {/* ── BRAND MARK ── */}
+          <div className="text-center mb-1">
+            <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/25">
+              <ShieldCheck className="h-7 w-7 text-white" />
+            </div>
+            <h1 className="mt-3 text-2xl font-black tracking-tight text-slate-900">
+              {pageMode === "login" ? "Masuk Akun" : "Buat PIN Baru"}
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {pageMode === "login"
+                ? "Kelas Online Royatul Qur'an"
+                : `Hai, ${setupNama}! Buat PIN untuk login berikutnya.`}
+            </p>
           </div>
-        )}
 
-        {/* ── LOGIN FORM ── */}
-        {pageMode === "login" && (
-          <form
-            onSubmit={handleLogin}
-            action="javascript:void(0);"
-            method="POST"
-            className="space-y-4"
-          >
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                NIS (Murid) atau NIP (Guru/Admin)
-              </label>
-              <input
-                type="text"
-                inputMode="text"
-                autoComplete="username"
-                value={idNumber}
-                onChange={(e) => setIdNumber(e.target.value)}
-                placeholder="Contoh: 2024001 atau 19850101"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition"
-              />
-              <p className="mt-1 text-[11px] text-slate-400">
-                *Login menggunakan NIS — bukan NIK kependudukan
-              </p>
-            </div>
+          {/* ── MAIN CARD ── */}
+          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-7 shadow-xl shadow-slate-200/60">
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                PIN (4–6 Digit)
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="off"
-                  data-lpignore="true"
-                  name="pin_code"
-                  id="pin_code"
-                  maxLength={6}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-                  placeholder="Masukkan PIN Anda"
-                  style={{
-                    WebkitTextSecurity: showPin ? "none" : "disc",
-                  } as React.CSSProperties}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 pr-10 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition tracking-widest font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPin((p) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                >
-                  {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+            {/* Error Alert */}
+            {error && (
+              <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-500 mt-0.5" />
+                <span>{error}</span>
               </div>
-              <p className="mt-1 text-[11px] text-slate-400">
-                Default: 123456 (Bisa diubah di menu profil setelah masuk)
-              </p>
-            </div>
+            )}
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-md shadow-emerald-600/25 hover:bg-emerald-700 active:scale-98 disabled:opacity-70 transition cursor-pointer"
-            >
-              {isSubmitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin" />Memverifikasi...</>
-              ) : (
-                <><Lock className="h-4 w-4" />Masuk Sekarang</>
-              )}
-            </button>
-          </form>
-        )}
-
-        {/* ── SETUP PIN FORM ── */}
-        {pageMode === "setup-pin" && (
-          <>
-            {setupDone ? (
-              <div className="flex flex-col items-center gap-3 py-8 text-center">
-                <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-                <p className="text-sm font-bold text-slate-900">PIN Berhasil Dibuat!</p>
-                <p className="text-xs text-slate-500">Silakan login menggunakan PIN baru Anda.</p>
-              </div>
-            ) : (
+            {/* ── LOGIN FORM ── */}
+            {pageMode === "login" && (
               <form
-                onSubmit={handleSetupPin}
+                onSubmit={handleLogin}
                 action="javascript:void(0);"
                 method="POST"
-                className="space-y-4"
+                className="space-y-5"
               >
-                <div className="rounded-xl bg-amber-50 border border-amber-200 px-3.5 py-3 text-xs text-amber-800">
-                  ⚠️ Ini adalah login pertama Anda. Buat PIN untuk keamanan akun.
-                </div>
-
+                {/* NIS / NIP Input */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    PIN Baru (4–6 Digit)
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    NIS (Santri) atau NIP (Guru / Admin)
                   </label>
                   <input
                     type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    autoComplete="off"
-                    maxLength={6}
-                    value={newPin}
-                    onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
-                    placeholder="Buat PIN baru"
-                    style={{
-                      WebkitTextSecurity: "disc",
-                    } as React.CSSProperties}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm focus:border-emerald-500 focus:outline-none transition tracking-widest font-mono"
+                    inputMode="text"
+                    autoComplete="username"
+                    value={idNumber}
+                    onChange={(e) => setIdNumber(e.target.value)}
+                    placeholder="Contoh: 2024001 atau 19850101"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all"
                   />
+                  <p className="mt-1.5 text-[11px] text-slate-400">
+                    *Gunakan NIS — bukan NIK kependudukan
+                  </p>
                 </div>
 
+                {/* PIN Input */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Konfirmasi PIN
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    PIN (4–6 Digit)
                   </label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    autoComplete="off"
-                    maxLength={6}
-                    value={confirmPin}
-                    onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
-                    placeholder="Ulangi PIN"
-                    style={{
-                      WebkitTextSecurity: "disc",
-                    } as React.CSSProperties}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-sm focus:border-emerald-500 focus:outline-none transition tracking-widest font-mono"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      autoComplete="off"
+                      data-lpignore="true"
+                      name="pin_code"
+                      id="pin_code"
+                      maxLength={6}
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Masukkan PIN Anda"
+                      style={{
+                        WebkitTextSecurity: showPin ? "none" : "disc",
+                      } as React.CSSProperties}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all tracking-widest font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPin((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-slate-400">
+                    Default: 123456 — bisa diubah setelah login
+                  </p>
                 </div>
 
+                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-md disabled:opacity-70"
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-sm shadow-blue-500/25 hover:bg-blue-700 active:scale-[0.98] disabled:opacity-60 transition-all"
                 >
                   {isSubmitting ? (
-                    <><Loader2 className="h-4 w-4 animate-spin" />Menyimpan...</>
+                    <><Loader2 className="h-4 w-4 animate-spin" />Memverifikasi...</>
                   ) : (
-                    "Simpan PIN & Lanjut"
+                    <><Lock className="h-4 w-4" />Masuk Sekarang</>
                   )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setPageMode("login")}
-                  className="w-full rounded-xl border border-slate-200 py-2.5 text-xs text-slate-500 hover:bg-slate-50"
-                >
-                  ← Kembali ke Login
                 </button>
               </form>
             )}
-          </>
-        )}
 
-        {/* ── Akun Pengujian Cepat ── */}
-        <div className="mt-8 rounded-2xl border border-slate-200/90 bg-slate-50/80 p-3.5 text-xs text-slate-600">
-          <p className="font-bold text-slate-800 text-center mb-2 text-[11px] uppercase tracking-wider">
-            ⚡ Klik untuk Coba Akun Pengujian:
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setIdNumber("admin");
-                setPin("123456");
-                setError("");
-              }}
-              className="flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 active:scale-95 transition text-center shadow-xs"
-            >
-              <span className="font-black text-slate-900 text-xs">Admin</span>
-              <span className="text-[10px] text-slate-400 mt-0.5 font-mono">admin</span>
-            </button>
+            {/* ── SETUP PIN FORM ── */}
+            {pageMode === "setup-pin" && (
+              <>
+                {setupDone ? (
+                  <div className="flex flex-col items-center gap-3 py-8 text-center">
+                    <CheckCircle2 className="h-14 w-14 text-emerald-500" />
+                    <p className="text-base font-bold text-slate-900">PIN Berhasil Dibuat!</p>
+                    <p className="text-sm text-slate-500">Silakan login menggunakan PIN baru Anda.</p>
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={handleSetupPin}
+                    action="javascript:void(0);"
+                    method="POST"
+                    className="space-y-5"
+                  >
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                      ⚠️ Ini adalah login pertama Anda. Buat PIN untuk keamanan akun.
+                    </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setIdNumber("19850101");
-                setPin("123456");
-                setError("");
-              }}
-              className="flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 active:scale-95 transition text-center shadow-xs"
-            >
-              <span className="font-black text-slate-900 text-xs">Wali Kelas</span>
-              <span className="text-[10px] text-slate-400 mt-0.5 font-mono">19850101</span>
-            </button>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        PIN Baru (4–6 Digit)
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        autoComplete="off"
+                        maxLength={6}
+                        value={newPin}
+                        onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+                        placeholder="Buat PIN baru"
+                        style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all tracking-widest font-mono"
+                      />
+                    </div>
 
-            <button
-              type="button"
-              onClick={() => {
-                setIdNumber("2024001");
-                setPin("123456");
-                setError("");
-              }}
-              className="flex flex-col items-center justify-center p-2 rounded-xl bg-white border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50/50 active:scale-95 transition text-center shadow-xs"
-            >
-              <span className="font-black text-slate-900 text-xs">Santri</span>
-              <span className="text-[10px] text-slate-400 mt-0.5 font-mono">2024001</span>
-            </button>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        Konfirmasi PIN
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        autoComplete="off"
+                        maxLength={6}
+                        value={confirmPin}
+                        onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
+                        placeholder="Ulangi PIN"
+                        style={{ WebkitTextSecurity: "disc" } as React.CSSProperties}
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-100 transition-all tracking-widest font-mono"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3.5 text-sm font-bold text-white shadow-sm shadow-blue-500/25 hover:bg-blue-700 disabled:opacity-60 transition-all"
+                    >
+                      {isSubmitting ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" />Menyimpan...</>
+                      ) : (
+                        "Simpan PIN & Lanjut"
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPageMode("login")}
+                      className="w-full rounded-xl border border-slate-200 py-2.5 text-xs text-slate-500 hover:bg-slate-50 transition-colors"
+                    >
+                      ← Kembali ke Login
+                    </button>
+                  </form>
+                )}
+              </>
+            )}
           </div>
-          <p className="text-center text-[10px] text-slate-400 mt-2">
-            Semua akun pengujian menggunakan PIN default: <code className="font-bold text-slate-700 bg-slate-200 px-1 py-0.5 rounded">123456</code>
-          </p>
+
+          {/* ── Testing Accounts (collapsible) ── */}
+          {pageMode === "login" && (
+            <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+              <button
+                type="button"
+                onClick={() => setShowTestAccounts((v) => !v)}
+                className="flex w-full items-center justify-between px-4 py-3 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                  Mode Demonstrasi — Klik untuk Akun Pengujian
+                </span>
+                {showTestAccounts ? (
+                  <ChevronUp className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronDown className="h-3.5 w-3.5" />
+                )}
+              </button>
+
+              {showTestAccounts && (
+                <div className="border-t border-slate-100 px-4 pb-4 pt-3 space-y-2">
+                  <p className="text-[11px] text-slate-400 mb-3">
+                    Semua akun demo menggunakan PIN:{" "}
+                    <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono font-bold text-slate-700">
+                      123456
+                    </code>
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {testAccounts.map((acc) => (
+                      <button
+                        key={acc.id}
+                        type="button"
+                        onClick={() => fillTestAccount(acc.id, "123456")}
+                        className="flex flex-col items-start rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-left hover:border-blue-300 hover:bg-blue-50/50 active:scale-[0.97] transition-all"
+                      >
+                        <span className="text-xs font-black text-slate-900">{acc.label}</span>
+                        <span className="text-[10px] text-slate-400 font-mono mt-0.5">{acc.id}</span>
+                        <span className="mt-1 inline-block rounded-md bg-slate-200/80 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
+                          {acc.role}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

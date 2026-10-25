@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 export async function GET(req: NextRequest) {
   try {
     // Parallel fetch semua data master
-    const [usersRes, kelasRes, mapelRes, assignRes, tugasRes, pengumpulanRes, nilaiManualRes] =
+    const [usersRes, kelasRes, mapelRes, assignRes, tugasRes, pengumpulanRes, nilaiManualRes, halaqahRes] =
       await Promise.all([
         supabase.from("users").select("*").order("nama"),
         supabase.from("kelas").select("*, wali:wali_id(id,nama)").order("jenjang,rombel"),
@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
         supabase.from("tugas").select("*, mapel:mapel_id(id,nama), kelas:kelas_id(id,nama,jenjang,rombel), guru:guru_id(id,nama)").order("created_at", { ascending: false }),
         supabase.from("pengumpulan").select("*, murid:murid_id(id,nama,nis)").order("waktu_submit", { ascending: false }),
         supabase.from("nilai_manual").select("*").order("created_at", { ascending: false }),
+        supabase.from("halaqah").select("*, musyrif:musyrif_id(id,nama), anggota:halaqah_anggota(count)").order("created_at", { ascending: false }),
       ]);
 
     if (usersRes.error) throw usersRes.error;
@@ -25,6 +26,20 @@ export async function GET(req: NextRequest) {
     if (tugasRes.error) throw tugasRes.error;
     if (pengumpulanRes.error) throw pengumpulanRes.error;
     if (nilaiManualRes.error) throw nilaiManualRes.error;
+    // halaqah: non-fatal jika tabel belum ada (graceful degradation)
+    const halaqahList = !halaqahRes.error
+      ? (halaqahRes.data || []).map((h: any) => ({
+          id: h.id,
+          nama: h.nama,
+          jenis: h.jenis,
+          musyrifId: h.musyrif_id,
+          musyrifNama: h.musyrif?.nama ?? null,
+          targetSurah: h.target_surah,
+          jadwal: h.jadwal,
+          totalAnggota: h.anggota?.[0]?.count ?? 0,
+          createdAt: h.created_at,
+        }))
+      : [];
 
     // Transform ke format yang dipakai store (compatible dengan mock-data types)
     const assignments = (assignRes.data || []).map(transformAssignment);
@@ -75,7 +90,7 @@ export async function GET(req: NextRequest) {
     const nilaiManualList = (nilaiManualRes.data || []).map(transformNilaiManual);
 
     return NextResponse.json({
-      users, kelas, mapel, assignments, tugasList, pengumpulanList, nilaiManualList,
+      users, kelas, mapel, assignments, tugasList, pengumpulanList, nilaiManualList, halaqahList,
     });
   } catch (err) {
     console.error("[data/master]", err);

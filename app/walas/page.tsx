@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useApp } from "@/lib/store";
 import { AppNavbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
+import { DropdownSelector } from "@/components/ui/DropdownSelector";
+import { SandwichActionMenu } from "@/components/ui/SandwichActionMenu";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -83,7 +85,16 @@ function WalasDashboardContent() {
   }, [fetchMatrix]);
 
   const handleCopyWalmuLink = () => {
+    // Link Universal — otomatis Live Hari Ini, bisa disimpan permanen di grup WA
     const url = `${window.location.origin}/pantau/${kelasSlug}`;
+    navigator.clipboard.writeText(url);
+    setCopiedWalmuLink(true);
+    setTimeout(() => setCopiedWalmuLink(false), 2500);
+  };
+
+  const handleCopyWalmuLinkDate = () => {
+    // Link Khusus Tanggal — terkunci sesuai tanggal yang dipilih walas
+    const url = `${window.location.origin}/pantau/${kelasSlug}?date=${matrixDate}`;
     navigator.clipboard.writeText(url);
     setCopiedWalmuLink(true);
     setTimeout(() => setCopiedWalmuLink(false), 2500);
@@ -360,85 +371,69 @@ function WalasDashboardContent() {
   };
 
   return (
-    <div className="flex flex-1 flex-col pb-24">
+    <div className="flex flex-1 flex-col pb-24 bg-slate-50">
       <AppNavbar />
 
-      {/* Header Banner Walas */}
-      <div className="bg-gradient-to-r from-slate-900 via-teal-950 to-emerald-950 p-5 text-white">
-        <div className="flex items-center justify-between">
+      {/* ── Clean Header ── */}
+      <div className="bg-white border-b border-slate-200 px-5 pt-5 pb-4">
+        {/* Top Row: title + badge */}
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-200 border border-emerald-500/30">
-              <ShieldCheck className="h-3 w-3 text-emerald-300" />
-              <span>Portal Wali Kelas</span>
+            <div className="flex items-center gap-2 mb-1">
+              <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Portal Wali Kelas</span>
             </div>
-            <h2 className="mt-1 text-lg font-bold tracking-tight text-white leading-tight">
-              Rekap Semua Mapel • {kelasNama}
-            </h2>
-            <p className="text-xs text-emerald-300">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 leading-tight">
+              {kelasNama}
+            </h1>
+            <p className="mt-0.5 text-sm text-slate-500">
               Wali Kelas: {currentUser?.nama || "Ustadz Zaadurraja Atqiyya"}
             </p>
           </div>
-
-          <div className="flex flex-col items-end">
-            <span className="text-xs text-emerald-200">Total Siswa</span>
-            <span className="text-2xl font-black text-white">{totalMuridKelas}</span>
+          <div className="shrink-0 flex flex-col items-end gap-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+              <Users className="h-3.5 w-3.5 text-slate-500" />
+              {totalMuridKelas} Santri
+            </span>
           </div>
         </div>
 
-        {/* Quick Stats Walas */}
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="rounded-xl bg-white/10 p-2.5 backdrop-blur-sm">
-            <p className="text-lg font-black text-emerald-200">{classTugas.length}</p>
-            <p className="text-[10px] text-emerald-300">Total Tugas/UH</p>
+        {/* Stat Pills Row */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 text-center">
+            <p className="text-xl font-black text-slate-900">{classTugas.length}</p>
+            <p className="text-[10px] font-semibold text-slate-500 mt-0.5">Total Tugas/UH</p>
           </div>
-
-          <div className={`rounded-xl p-2.5 backdrop-blur-sm ${totalBelumSemuaTugas > 0 ? "bg-rose-500/20 border border-rose-500/30" : "bg-emerald-500/20"}`}>
-            <p className={`text-lg font-black ${totalBelumSemuaTugas > 0 ? "text-rose-300" : "text-emerald-300"}`}>
-              {totalBelumSemuaTugas}
-            </p>
-            <p className="text-[10px] text-slate-300">Belum Kumpul</p>
+          <div className={`rounded-2xl border p-3 text-center ${
+            totalBelumSemuaTugas > 0
+              ? "border-rose-200 bg-rose-50/60"
+              : "border-emerald-200 bg-emerald-50/60"
+          }`}>
+            <p className={`text-xl font-black ${
+              totalBelumSemuaTugas > 0 ? "text-rose-700" : "text-emerald-700"
+            }`}>{totalBelumSemuaTugas}</p>
+            <p className={`text-[10px] font-semibold mt-0.5 ${
+              totalBelumSemuaTugas > 0 ? "text-rose-600" : "text-emerald-600"
+            }`}>Belum Kumpul</p>
           </div>
-
-          <div className="rounded-xl bg-emerald-500/20 p-2.5 backdrop-blur-sm border border-emerald-500/30">
-            <p className="text-lg font-black text-emerald-300">{classAvgScore}</p>
-            <p className="text-[10px] text-emerald-200">Rata² Rapor Kelas</p>
+          <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-3 text-center">
+            <p className="text-xl font-black text-blue-700">{classAvgScore}</p>
+            <p className="text-[10px] font-semibold text-blue-600 mt-0.5">Rata² Rapor</p>
           </div>
         </div>
 
-        {/* Top Tab Switcher */}
-        <div className="mt-4 flex rounded-xl bg-emerald-950/60 p-1 border border-emerald-800/40 text-xs font-semibold">
-          <button
-            type="button"
-            onClick={() => setActiveTab("cek_walmu")}
-            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 transition ${
-              activeTab === "cek_walmu" ? "bg-white text-emerald-950 shadow-sm font-bold" : "text-emerald-200 hover:text-white"
-            }`}
-          >
-            <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
-            <span>1. Cek Walmu (Live)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("pengumpulan")}
-            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 transition ${
-              activeTab === "pengumpulan" ? "bg-white text-emerald-950 shadow-sm font-bold" : "text-emerald-200 hover:text-white"
-            }`}
-          >
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-            <span>2. Monitoring Mapel (WA)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("rapor")}
-            className={`flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 transition ${
-              activeTab === "rapor" ? "bg-white text-emerald-950 shadow-sm font-bold" : "text-emerald-200 hover:text-white"
-            }`}
-          >
-            <Award className="h-3.5 w-3.5 text-emerald-400" />
-            <span>3. Rekap Rapor</span>
-          </button>
+        {/* ── Module Dropdown Selector (Menggantikan 3-pill tab) ── */}
+        <div className="mt-4">
+          <DropdownSelector
+            options={[
+              { key: "cek_walmu",   label: "Cek Walmu Harian (Live)",     icon: "✨", description: "Matrix realtime pengumpulan tugas hari ini" },
+              { key: "pengumpulan", label: "Monitoring Pengumpulan WA",    icon: "💬", description: "Siapa belum kumpul per mapel, salin pesan WA" },
+              { key: "rapor",       label: "Rekap Nilai Rapor Siswa",      icon: "📊", description: "Rata-rata nilai & predikat seluruh santri" },
+            ]}
+            value={activeTab}
+            onChange={(k) => setActiveTab(k as typeof activeTab)}
+            className="w-full"
+          />
         </div>
       </div>
 
@@ -464,45 +459,18 @@ function WalasDashboardContent() {
                   </p>
                 </div>
 
-                {/* Quick Action Buttons */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <button
-                    type="button"
-                    onClick={handleCopyWalmuLink}
-                    className="flex items-center gap-1 rounded-xl bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition"
-                  >
-                    {copiedWalmuLink ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Share2 className="h-3.5 w-3.5" />}
-                    <span>{copiedWalmuLink ? "Link Disalin!" : "Salin Link Walmu"}</span>
-                  </button>
-
-                  <Link
-                    href={`/pantau/${kelasSlug}`}
-                    target="_blank"
-                    className="flex items-center gap-1 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    <span>Lihat Halaman Walmu</span>
-                  </Link>
-
-                  <button
-                    type="button"
-                    onClick={handleCopyWalmuWA}
-                    className="flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 transition"
-                  >
-                    {copiedWalmuWA ? <Check className="h-3.5 w-3.5 text-emerald-200" /> : <Copy className="h-3.5 w-3.5" />}
-                    <span>{copiedWalmuWA ? "Format WA Disalin!" : "Format WA Walmu"}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleExportMatrixCSV}
-                    className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
-                    title="Export CSV"
-                  >
-                    <Download className="h-3.5 w-3.5 text-slate-500" />
-                    <span className="hidden sm:inline">CSV</span>
-                  </button>
-                </div>
+                {/* Quick Action → Sandwich Menu */}
+                <SandwichActionMenu
+                  label="Aksi"
+                  align="right"
+                  items={[
+                    { key: "salin_link_universal", label: copiedWalmuLink ? "Link Disalin! ✓" : "Salin Link Universal (Tetap Live)", icon: "🔗", onClick: handleCopyWalmuLink },
+                    { key: "salin_link_tgl",       label: "Salin Link Tanggal Ini",                                                icon: "📅", onClick: handleCopyWalmuLinkDate },
+                    { key: "lihat",                label: "Buka Halaman Walmu",                                                     icon: "👁️",  onClick: () => window.open(`/pantau/${kelasSlug}`, "_blank") },
+                    { key: "wa_format",            label: copiedWalmuWA ? "Format WA Disalin! ✓" : "Salin Pesan Broadcast WA",      icon: "💬", onClick: handleCopyWalmuWA, divider: true },
+                    { key: "export_csv",           label: "Export Absensi Harian (CSV)",                                           icon: "📊", onClick: handleExportMatrixCSV },
+                  ]}
+                />
               </div>
 
               {/* Filter controls: Tanggal & Search */}
@@ -634,14 +602,14 @@ function WalasDashboardContent() {
             </div>
 
             {/* Spreadsheet Matrix Box */}
-            <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
-              <div className="bg-[#1e4b8a] text-white px-4 py-3 text-center border-b border-[#163868] flex items-center justify-between">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="bg-slate-800 text-white px-4 py-3 border-b border-slate-700 flex items-center justify-between">
                 <div className="w-12 hidden sm:block"></div>
-                <div>
+                <div className="text-center">
                   <h3 className="text-xs sm:text-sm font-black tracking-wide uppercase">
                     CEK PENGUMPULAN TUGAS — {kelasNama.toUpperCase()}
                   </h3>
-                  <p className="text-[10px] text-blue-200 mt-0.5">
+                  <p className="text-[10px] text-slate-400 mt-0.5">
                     {new Date(`${matrixDate}T00:00:00`).toLocaleDateString("id-ID", {
                       weekday: "long",
                       day: "numeric",
@@ -674,14 +642,14 @@ function WalasDashboardContent() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="bg-[#2563eb] text-white text-[11px] font-bold divide-x divide-blue-400">
-                        <th className="py-2.5 px-3 bg-[#1d4ed8] min-w-[180px] sm:min-w-[220px]">
-                          Nama Murid
+                      <tr className="bg-slate-100 text-slate-700 text-[11px] font-bold divide-x divide-slate-200 border-b border-slate-200">
+                        <th className="py-2.5 px-3 bg-slate-100 min-w-[180px] sm:min-w-[220px]">
+                          Nama Santri
                         </th>
                         {matrixData.tasks.map((task: any) => (
                           <th key={task.id} className="py-2.5 px-3 text-center min-w-[90px] sm:min-w-[110px]">
-                            <div className="truncate font-black">{task.mapelNama}</div>
-                            <div className="text-[9px] font-normal opacity-90 truncate max-w-[100px] mx-auto">
+                            <div className="truncate font-black text-slate-800">{task.mapelNama}</div>
+                            <div className="text-[9px] font-normal text-slate-500 truncate max-w-[100px] mx-auto">
                               {task.judul}
                             </div>
                           </th>
@@ -703,10 +671,15 @@ function WalasDashboardContent() {
                             : "bg-slate-50/60 hover:bg-slate-100";
 
                           return (
-                            <tr key={student.id} className={`${rowBg} transition divide-x divide-slate-200`}>
+                            <tr
+                              key={student.id}
+                              className={`${rowBg} transition divide-x divide-slate-100 border-b border-slate-100 last:border-b-0 ${
+                                !student.isAllCompleted && student.isNoneCompleted ? "border-l-4 border-l-rose-400" : ""
+                              }`}
+                            >
                               <td className="py-2.5 px-3 font-semibold text-slate-900">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-[10px] text-slate-400 font-mono w-4 text-right">
+                                  <span className="text-[10px] text-slate-400 font-mono w-4 text-right shrink-0">
                                     {idx + 1}.
                                   </span>
                                   <div className="truncate">
@@ -727,20 +700,18 @@ function WalasDashboardContent() {
                                 return (
                                   <td
                                     key={task.id}
-                                    className={`py-2 px-3 text-center font-bold ${
-                                      isDone ? "bg-[#dcfce7]/60" : "bg-[#fee2e2]/60"
-                                    }`}
+                                    className="py-2 px-3 text-center"
                                   >
                                     {isDone ? (
                                       <span
-                                        className="inline-flex items-center justify-center h-6 w-6 rounded-lg bg-emerald-600 text-white shadow-2xs"
+                                        className="inline-flex items-center justify-center h-6 w-6 rounded-lg bg-emerald-500 text-white shadow-xs text-[11px] font-black"
                                         title={`Sudah Kumpul • Nilai: ${result.nilai ?? "-"}`}
                                       >
                                         ✓
                                       </span>
                                     ) : (
                                       <span
-                                        className="inline-flex items-center justify-center h-6 w-6 rounded-lg border-2 border-rose-500 bg-white text-rose-600 font-bold"
+                                        className="inline-flex items-center justify-center h-6 w-6 rounded-lg border-2 border-rose-300 bg-rose-50 text-rose-500 text-[11px] font-black"
                                         title="Belum Mengumpulkan"
                                       >
                                         ✕
@@ -750,9 +721,9 @@ function WalasDashboardContent() {
                                 );
                               })}
 
-                              <td className="py-2 px-3 text-center font-bold text-[11px]">
+                              <td className="py-2 px-3 text-center">
                                 <span
-                                  className={`inline-block rounded-full px-2 py-0.5 text-[10px] ${
+                                  className={`inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                                     student.isAllCompleted
                                       ? "bg-emerald-100 text-emerald-800"
                                       : student.isNoneCompleted
@@ -1178,8 +1149,13 @@ export default function WalasDashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-slate-100 text-xs text-slate-500">
-          Memuat portal wali kelas...
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center">
+              <RefreshCw className="h-6 w-6 text-slate-400 animate-spin" />
+            </div>
+            <p className="text-sm font-medium text-slate-500">Memuat portal wali kelas…</p>
+          </div>
         </div>
       }
     >

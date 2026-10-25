@@ -15,18 +15,30 @@ export default function MuridDashboard() {
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center p-8 min-h-[50vh]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-12 w-12 rounded-2xl bg-emerald-50 flex items-center justify-center">
+            <div className="h-6 w-6 animate-spin rounded-full border-3 border-emerald-500 border-t-transparent" />
+          </div>
+          <p className="text-sm font-medium text-slate-500">Memuat tugas…</p>
+        </div>
       </div>
     );
   }
 
   if (!currentUser) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
-        <p className="text-sm text-slate-600">Sesi telah berakhir atau Anda belum login.</p>
-        <Link href="/login" className="mt-3 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white">
-          Masuk ke Akun
-        </Link>
+      <div className="flex flex-1 flex-col bg-slate-50">
+        <AppNavbar />
+        <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100 shadow-inner">
+            <AlertCircle className="h-10 w-10 text-slate-400" />
+          </div>
+          <h2 className="mt-5 text-lg font-black text-slate-900">Sesi Berakhir</h2>
+          <p className="mt-2 text-sm text-slate-500">Silakan login kembali untuk melanjutkan.</p>
+          <Link href="/login" className="mt-6 inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition-colors">
+            Masuk ke Akun
+          </Link>
+        </div>
       </div>
     );
   }
@@ -98,73 +110,81 @@ export default function MuridDashboard() {
   };
 
   return (
-    <div className="flex flex-1 flex-col pb-24">
+    <div className="flex flex-1 flex-col pb-24 bg-slate-50">
       <AppNavbar />
 
-      {/* Profile Header Card */}
-      <div className="bg-gradient-to-r from-emerald-700 to-teal-800 p-5 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="rounded-full bg-emerald-600/60 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-100 border border-emerald-400/30">
-              {currentUser.kelasNama || "Kelas 6"}
-            </span>
-            <h2 className="mt-1 text-base font-bold tracking-tight text-white">{currentUser.nama}</h2>
-            <p className="text-xs text-emerald-200">NIS: {currentUser.nis || "1001"}</p>
+      {/* ── Clean Profile Header ── */}
+      <div className="bg-white border-b border-slate-200 px-5 pt-5 pb-4">
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-xl font-black text-white shadow-md shadow-blue-500/20">
+            {currentUser.nama.charAt(0).toUpperCase()}
           </div>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-xl font-bold backdrop-blur-md">
-            {currentUser.nama.charAt(0)}
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">Dashboard Santri</p>
+            <h1 className="text-lg font-black text-slate-900 truncate leading-tight">{currentUser.nama}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-xs text-slate-500 font-mono">NIS: {currentUser.nis || "-"}</span>
+              <span className="h-3 w-px bg-slate-200" />
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                {currentUser.kelasNama || "Kelas 6"}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Quick Stats Summary */}
-        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-xl bg-white/10 p-2 backdrop-blur-sm">
-            <p className="text-lg font-black text-rose-300">{belumList.length}</p>
-            <p className="text-[10px] text-emerald-100">Belum Kumpul</p>
+        {/* Quick Stats */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="rounded-2xl border border-rose-100 bg-rose-50/60 p-3 text-center">
+            <p className="text-xl font-black text-rose-700">{belumList.length}</p>
+            <p className="text-[10px] font-semibold text-rose-600 mt-0.5">Belum Kumpul</p>
           </div>
-          <div className="rounded-xl bg-white/10 p-2 backdrop-blur-sm">
-            <p className="text-lg font-black text-amber-300">{sudahList.length}</p>
-            <p className="text-[10px] text-emerald-100">Menunggu Nilai</p>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-3 text-center">
+            <p className="text-xl font-black text-amber-700">{sudahList.length}</p>
+            <p className="text-[10px] font-semibold text-amber-600 mt-0.5">Menunggu Nilai</p>
           </div>
-          <div className="rounded-xl bg-white/10 p-2 backdrop-blur-sm">
-            <p className="text-lg font-black text-emerald-300">{dinilaiList.length}</p>
-            <p className="text-[10px] text-emerald-100">Sudah Dinilai</p>
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3 text-center">
+            <p className="text-xl font-black text-emerald-700">{dinilaiList.length}</p>
+            <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">Sudah Dinilai</p>
           </div>
         </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="sticky top-[57px] z-20 flex border-b border-slate-200 bg-white text-xs font-semibold">
-        <button
-          onClick={() => setActiveTab("belum")}
-          className={`flex-1 py-3 text-center border-b-2 transition ${
-            activeTab === "belum"
-              ? "border-rose-500 text-rose-600 bg-rose-50/30"
-              : "border-transparent text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          🔴 Belum ({belumList.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("sudah")}
-          className={`flex-1 py-3 text-center border-b-2 transition ${
-            activeTab === "sudah"
-              ? "border-amber-500 text-amber-700 bg-amber-50/30"
-              : "border-transparent text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          🟡 Dikumpul ({sudahList.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("dinilai")}
-          className={`flex-1 py-3 text-center border-b-2 transition ${
-            activeTab === "dinilai"
-              ? "border-emerald-600 text-emerald-700 bg-emerald-50/30"
-              : "border-transparent text-slate-500 hover:text-slate-800"
-          }`}
-        >
-          🟢 Dinilai ({dinilaiList.length})
-        </button>
+        {/* Pill Tab Switcher */}
+        <div className="mt-4 flex items-center gap-1.5 rounded-2xl bg-slate-100 p-1.5">
+          <button
+            onClick={() => setActiveTab("belum")}
+            className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
+              activeTab === "belum"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-rose-500 shrink-0" />
+            Belum ({belumList.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("sudah")}
+            className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
+              activeTab === "sudah"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+            Dikumpul ({sudahList.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("dinilai")}
+            className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-bold transition-all ${
+              activeTab === "dinilai"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+            Dinilai ({dinilaiList.length})
+          </button>
+        </div>
       </div>
 
       {/* Content List */}
@@ -172,10 +192,10 @@ export default function MuridDashboard() {
         {activeTab === "belum" && (
           <>
             {belumList.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center">
-                <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-500" />
-                <p className="mt-2 text-xs font-bold text-slate-800">Alhamdulillah!</p>
-                <p className="mt-0.5 text-xs text-slate-500">Semua tugas Anda sudah dikumpulkan.</p>
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center">
+                <CheckCircle2 className="mx-auto h-10 w-10 text-emerald-500" />
+                <p className="mt-3 text-sm font-bold text-slate-800">Alhamdulillah!</p>
+                <p className="mt-1 text-xs text-slate-500">Semua tugas Anda sudah dikumpulkan.</p>
               </div>
             ) : (
               belumList.map((t) => (

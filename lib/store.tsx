@@ -58,6 +58,45 @@ export interface Kelas {
   totalMurid: number;
 }
 
+// ─── Halaqah ──────────────────────────────────────────────────────────────────
+export type JenisHalaqah = "tahsin" | "tahfidz";
+
+export interface Halaqah {
+  id: string;
+  nama: string;           // misal: "Halaqah Al-Fatihah"
+  jenis: JenisHalaqah;   // tahsin | tahfidz
+  musyrifId?: string | null;  // guru yang ditugaskan
+  musyrifNama?: string | null;
+  targetSurah?: string | null;  // target hafalan / bacaan
+  jadwal?: string | null;       // keterangan jadwal
+  totalAnggota: number;
+  createdAt?: string;
+}
+
+export interface HalaqahAnggota {
+  id: string;
+  halaqahId: string;
+  muridId: string;
+  muridNama?: string;
+  muridNis?: string | null;
+  kelasNama?: string | null;   // kelas asal murid
+  jenjang?: number | null;
+  joinedAt?: string;
+}
+
+export interface HalaqahCatatan {
+  id: string;
+  halaqahId: string;
+  muridId: string;
+  musyrifId?: string | null;
+  tanggal: string;
+  jenis: "hadir" | "absen" | "izin";
+  capaian?: string | null;     // bacaan / hafalan yang dicapai hari ini
+  catatan?: string | null;
+  nilai?: number | null;
+  createdAt?: string;
+}
+
 export interface Mapel {
   id: string;
   nama: string;
@@ -133,6 +172,7 @@ export interface Pengumpulan {
   autoNilai?: number | null;
   pdfUrl?: string | null;
   gdriveFileUrl?: string | null;
+  localFileUrl?: string | null; // Cache lokal preview (aktif max 7 hari)
   telegramFileId?: string | null;
   nilai?: number | null;
   catatanGuru?: string | null;
@@ -224,6 +264,17 @@ interface AppContextType {
   deleteAssignment: (id: string) => Promise<void>;
   updatePenugasanGuru: (guruId: string, penugasan: any[]) => Promise<void>;
 
+  // ── Halaqah ──────────────────────────────────────────────────────────────
+  halaqahList: Halaqah[];
+  addHalaqah: (data: { nama: string; jenis: JenisHalaqah; musyrifId?: string; targetSurah?: string; jadwal?: string }) => Promise<Halaqah>;
+  deleteHalaqah: (id: string) => Promise<void>;
+  updateHalaqahMusyrif: (halaqahId: string, musyrifId: string | null) => Promise<void>;
+  addHalaqahAnggota: (halaqahId: string, muridIds: string[]) => Promise<void>;
+  removeHalaqahAnggota: (halaqahId: string, muridId: string) => Promise<void>;
+  fetchHalaqahAnggota: (halaqahId: string) => Promise<HalaqahAnggota[]>;
+  addHalaqahCatatan: (data: { halaqahId: string; muridId: string; tanggal: string; jenis: "hadir" | "absen" | "izin"; capaian?: string; catatan?: string; nilai?: number }) => Promise<void>;
+  fetchHalaqahCatatan: (halaqahId: string, tanggal?: string) => Promise<HalaqahCatatan[]>;
+
   // Refresh data
   refreshData: () => Promise<void>;
 }
@@ -257,6 +308,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [tugasList, setTugasList] = useState<Tugas[]>([]);
   const [pengumpulanList, setPengumpulanList] = useState<Pengumpulan[]>([]);
   const [nilaiManualList, setNilaiManualList] = useState<NilaiManual[]>([]);
+  const [halaqahList, setHalaqahList] = useState<Halaqah[]>([]);
 
   // Restore session from localStorage on mount
   useEffect(() => {
@@ -282,6 +334,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setTugasList(data.tugasList || []);
       setPengumpulanList(data.pengumpulanList || []);
       setNilaiManualList(data.nilaiManualList || []);
+      setHalaqahList(data.halaqahList || []);
     } catch (err) {
       console.error("Failed to load data:", err);
     } finally {
@@ -530,6 +583,49 @@ export function AppProvider({ children }: { children: ReactNode }) {
     await refreshData();
   }, [refreshData]);
 
+
+  // ─── Halaqah Actions ─────────────────────────────────────────────────────
+  const addHalaqah = useCallback(async (data: { nama: string; jenis: JenisHalaqah; musyrifId?: string; targetSurah?: string; jadwal?: string }) => {
+    const result = await apiFetch("/api/halaqah", { method: "POST", body: JSON.stringify(data) });
+    setHalaqahList((prev) => [...prev, result.halaqah]);
+    return result.halaqah as Halaqah;
+  }, []);
+
+  const deleteHalaqah = useCallback(async (id: string) => {
+    await apiFetch(`/api/halaqah?id=${id}`, { method: "DELETE" });
+    setHalaqahList((prev) => prev.filter((h) => h.id !== id));
+  }, []);
+
+  const updateHalaqahMusyrif = useCallback(async (halaqahId: string, musyrifId: string | null) => {
+    const result = await apiFetch("/api/halaqah", { method: "PATCH", body: JSON.stringify({ halaqahId, musyrifId }) });
+    setHalaqahList((prev) => prev.map((h) => h.id === halaqahId ? { ...h, musyrifId, musyrifNama: result.musyrifNama } : h));
+  }, []);
+
+  const addHalaqahAnggota = useCallback(async (halaqahId: string, muridIds: string[]) => {
+    await apiFetch("/api/halaqah/anggota", { method: "POST", body: JSON.stringify({ halaqahId, muridIds }) });
+    setHalaqahList((prev) => prev.map((h) => h.id === halaqahId ? { ...h, totalAnggota: h.totalAnggota + muridIds.length } : h));
+  }, []);
+
+  const removeHalaqahAnggota = useCallback(async (halaqahId: string, muridId: string) => {
+    await apiFetch(`/api/halaqah/anggota?halaqahId=${halaqahId}&muridId=${muridId}`, { method: "DELETE" });
+    setHalaqahList((prev) => prev.map((h) => h.id === halaqahId ? { ...h, totalAnggota: Math.max(0, h.totalAnggota - 1) } : h));
+  }, []);
+
+  const fetchHalaqahAnggota = useCallback(async (halaqahId: string): Promise<HalaqahAnggota[]> => {
+    const result = await apiFetch(`/api/halaqah/anggota?halaqahId=${halaqahId}`);
+    return result.anggota || [];
+  }, []);
+
+  const addHalaqahCatatan = useCallback(async (data: { halaqahId: string; muridId: string; tanggal: string; jenis: "hadir" | "absen" | "izin"; capaian?: string; catatan?: string; nilai?: number }) => {
+    await apiFetch("/api/halaqah/catatan", { method: "POST", body: JSON.stringify(data) });
+  }, []);
+
+  const fetchHalaqahCatatan = useCallback(async (halaqahId: string, tanggal?: string): Promise<HalaqahCatatan[]> => {
+    const url = `/api/halaqah/catatan?halaqahId=${halaqahId}${tanggal ? `&tanggal=${tanggal}` : ""}`;
+    const result = await apiFetch(url);
+    return result.catatan || [];
+  }, []);
+
   // ─── Context Value ────────────────────────────────────────────────────────
   const value: AppContextType = {
     currentUser, isLoading, isDataLoading,
@@ -542,11 +638,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addKelas, updateKelas, deleteKelas, naikKelas, naikKelasSerempak, pindahKelasManual, kelulusanSiswa,
     addMapel, deleteMapel,
     addAssignment, deleteAssignment, updatePenugasanGuru,
+    halaqahList,
+    addHalaqah, deleteHalaqah, updateHalaqahMusyrif,
+    addHalaqahAnggota, removeHalaqahAnggota, fetchHalaqahAnggota,
+    addHalaqahCatatan, fetchHalaqahCatatan,
     refreshData,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
+
 
 export function useApp() {
   const ctx = useContext(AppContext);

@@ -6,6 +6,9 @@ import { useApp } from "@/lib/store";
 import { AppNavbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { User, Kelas, PenugasanGuru } from "@/lib/mock-data";
+import { DropdownSelector } from "@/components/ui/DropdownSelector";
+import { SandwichActionMenu } from "@/components/ui/SandwichActionMenu";
+import { HalaqahAdminPanel } from "@/components/ui/HalaqahAdminPanel";
 import {
   Users,
   GraduationCap,
@@ -41,6 +44,9 @@ import {
   EyeOff,
   RefreshCw,
 } from "lucide-react";
+import type { Halaqah } from "@/lib/store";
+
+
 
 export default function AdminPage() {
   const {
@@ -62,6 +68,13 @@ export default function AdminPage() {
     pindahKelasManual,
     kelulusanSiswa,
     gantiPinUser,
+    halaqahList,
+    addHalaqah,
+    deleteHalaqah,
+    updateHalaqahMusyrif,
+    addHalaqahAnggota,
+    removeHalaqahAnggota,
+    fetchHalaqahAnggota,
   } = useApp();
 
   const [selectedGuruForAssignment, setSelectedGuruForAssignment] = useState<User | null>(null);
@@ -102,10 +115,50 @@ export default function AdminPage() {
   };
 
   // Top Tabs
-  const [activeTab, setActiveTab] = useState<"murid" | "guru" | "kelas" | "kenaikan" | "mapel" | "rekap_nilai">("murid");
+  const [activeTab, setActiveTab] = useState<"murid" | "guru" | "kelas" | "kenaikan" | "mapel" | "rekap_nilai" | "halaqah">("murid");
 
-  // Folder View state for Murid
+  // Folder View state for Murid (Kelas Formal vs Halaqah)
+  const [muridFolderCategory, setMuridFolderCategory] = useState<"kelas" | "halaqah">("kelas");
   const [selectedFolderKelasId, setSelectedFolderKelasId] = useState<string | null>(null);
+  const [selectedFolderHalaqahId, setSelectedFolderHalaqahId] = useState<string | null>(null);
+  const [halaqahMembers, setHalaqahMembers] = useState<any[]>([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
+
+  // Modal Tambah Murid ke Halaqah State
+  const [isAddMuridHalaqahOpen, setIsAddMuridHalaqahOpen] = useState(false);
+  const [selectedKelasForAddHalaqah, setSelectedKelasForAddHalaqah] = useState("");
+  const [selectedMuridIdsForHalaqah, setSelectedMuridIdsForHalaqah] = useState<string[]>([]);
+  const [isSubmittingHalaqahMurid, setIsSubmittingHalaqahMurid] = useState(false);
+
+  // Penugasan Guru: Halaqah Musyrif State
+  const [tempHalaqahIds, setTempHalaqahIds] = useState<string[]>([]);
+
+  const openHalaqahFolder = async (halaqahId: string) => {
+    setSelectedFolderHalaqahId(halaqahId);
+    setSelectedFolderKelasId(null);
+    setSearchTerm("");
+    setIsLoadingMembers(true);
+    try {
+      const list = await fetchHalaqahAnggota(halaqahId);
+      setHalaqahMembers(list);
+    } catch (err) {
+      console.error("Gagal load anggota halaqah:", err);
+    } finally {
+      setIsLoadingMembers(false);
+    }
+  };
+
+  const handleRemoveMember = async (muridId: string, nama: string) => {
+    if (!selectedFolderHalaqahId) return;
+    if (!confirm(`Keluarkan ${nama} dari halaqah ini?`)) return;
+    try {
+      await removeHalaqahAnggota(selectedFolderHalaqahId, muridId);
+      setHalaqahMembers((prev) => prev.filter((m) => m.muridId !== muridId));
+    } catch (err: any) {
+      alert(err.message || "Gagal mengeluarkan santri.");
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState("");
 
   // Murid Detail Popup
@@ -156,13 +209,25 @@ export default function AdminPage() {
 
   if (!currentUser || currentUser.role !== "admin") {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
-        <ShieldCheck className="mx-auto h-10 w-10 text-amber-500 mb-2" />
-        <h2 className="text-base font-bold text-slate-900">Akses Khusus Administrator</h2>
-        <p className="mt-1 text-xs text-slate-500">Silakan login menggunakan akun administrator sekolah.</p>
-        <Link href="/login" className="mt-4 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white">
-          Ke Halaman Login
-        </Link>
+      <div className="flex flex-1 flex-col bg-slate-50">
+        <AppNavbar />
+        <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
+          <div className="w-full max-w-sm">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-slate-100 shadow-inner">
+              <ShieldCheck className="h-10 w-10 text-slate-400" />
+            </div>
+            <h2 className="mt-5 text-xl font-black text-slate-900">Akses Khusus Administrator</h2>
+            <p className="mt-2 text-sm text-slate-500 leading-relaxed">
+              Halaman ini hanya dapat diakses oleh administrator sekolah. Silakan login menggunakan akun admin.
+            </p>
+            <a
+              href="/login"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm shadow-blue-500/20 hover:bg-blue-700 transition-colors"
+            >
+              Ke Halaman Login
+            </a>
+          </div>
+        </div>
       </div>
     );
   }
@@ -197,7 +262,7 @@ export default function AdminPage() {
     setIsModalOpen(true);
   };
 
-  const handleSaveUser = (e: React.FormEvent) => {
+  const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nama.trim()) { alert("Mohon lengkapi nama."); return; }
 
@@ -399,95 +464,100 @@ export default function AdminPage() {
   const selectedFolderKelas = kelasList.find((k) => k.id === selectedFolderKelasId);
 
   return (
-    <div className="flex flex-1 flex-col pb-24">
+    <div className="flex flex-1 flex-col pb-24 bg-slate-50">
       <AppNavbar />
 
-      {/* Header Admin */}
-      <div className="bg-gradient-to-r from-amber-700 via-amber-800 to-slate-900 p-5 text-white">
-        <div className="flex items-center justify-between">
+      {/* ── Admin Header ── */}
+      <div className="bg-white border-b border-slate-200 px-5 pt-5 pb-4">
+        {/* Title row */}
+        <div className="flex items-start justify-between gap-2">
           <div>
-            <span className="rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-semibold text-amber-200 border border-amber-400/30">
-              Panel Pengelola Sekolah
-            </span>
-            <h2 className="mt-1 text-lg font-bold tracking-tight text-white leading-tight">
-              Portal Admin Royatul Quran
-            </h2>
-            <p className="text-xs text-amber-200">Kelola Data Murid, Guru, Kelas, & Mata Pelajaran</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => currentUser && handleOpenGantiPin(currentUser as any)}
-              className="flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 px-3 py-2 text-xs font-semibold text-white transition backdrop-blur-sm shadow-sm"
-              title="Ganti PIN Akun Admin"
-            >
-              <KeyRound className="h-3.5 w-3.5 text-amber-300" />
-              <span>Ganti PIN Admin</span>
-            </button>
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-md">
-              <School className="h-6 w-6 text-amber-300" />
+            <div className="flex items-center gap-2 mb-1">
+              <School className="h-4 w-4 text-slate-500 shrink-0" />
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Panel Pengelola Sekolah</span>
             </div>
+            <h1 className="text-xl font-black tracking-tight text-slate-900 leading-tight">Portal Admin</h1>
+          </div>
+          {/* Sandwich Action Menu */}
+          <SandwichActionMenu
+            label="Aksi"
+            align="right"
+            items={[
+              { key: "pin",     label: "Ganti PIN Akun Admin", icon: "🔑", onClick: () => currentUser && handleOpenGantiPin(currentUser as any) },
+              { key: "tpl",    label: "Download Template CSV",  icon: "📥", onClick: handleDownloadTemplate, divider: true },
+              { key: "import", label: "Import Santri (CSV)",    icon: "📤", onClick: () => setIsImportModalOpen(true) },
+            ]}
+          />
+        </div>
+
+        {/* Stat Pills */}
+        <div className="mt-4 grid grid-cols-4 gap-2">
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-3 text-center">
+            <p className="text-xl font-black text-blue-700">{allMurid.length}</p>
+            <p className="text-[10px] font-semibold text-blue-600 mt-0.5">Murid</p>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-3 text-center">
+            <p className="text-xl font-black text-emerald-700">{guruList.length}</p>
+            <p className="text-[10px] font-semibold text-emerald-600 mt-0.5">Guru</p>
+          </div>
+          <div className="rounded-2xl border border-violet-100 bg-violet-50/60 p-3 text-center">
+            <p className="text-xl font-black text-violet-700">{kelasList.length}</p>
+            <p className="text-[10px] font-semibold text-violet-600 mt-0.5">Kelas</p>
+          </div>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-3 text-center">
+            <p className="text-xl font-black text-amber-700">{mapelList.length}</p>
+            <p className="text-[10px] font-semibold text-amber-600 mt-0.5">Mapel</p>
           </div>
         </div>
 
-        {/* Quick Stats Grid */}
-        <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-          <div className="rounded-xl bg-white/10 p-2 backdrop-blur-sm">
-            <p className="text-lg font-black text-amber-300">{allMurid.length}</p>
-            <p className="text-[10px] text-amber-100">Murid</p>
-          </div>
-          <div className="rounded-xl bg-white/10 p-2 backdrop-blur-sm">
-            <p className="text-lg font-black text-white">{guruList.length}</p>
-            <p className="text-[10px] text-amber-100">Guru</p>
-          </div>
-          <div className="rounded-xl bg-white/10 p-2 backdrop-blur-sm">
-            <p className="text-lg font-black text-emerald-300">{kelasList.length}</p>
-            <p className="text-[10px] text-amber-100">Kelas</p>
-          </div>
-          <div className="rounded-xl bg-white/10 p-2 backdrop-blur-sm">
-            <p className="text-lg font-black text-blue-300">{mapelList.length}</p>
-            <p className="text-[10px] text-amber-100">Mapel</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs Navigasi Utama Admin */}
-      <div className="sticky top-[57px] z-20 flex border-b border-slate-200 bg-white text-xs font-semibold overflow-x-auto scrollbar-none">
-        {[
-          { key: "murid", label: "📁 Murid" },
-          { key: "kenaikan", label: "🚀 Naik Kelas" },
-          { key: "guru", label: "👨‍🏫 Guru" },
-          { key: "kelas", label: "🏫 Kelas" },
-          { key: "mapel", label: "📚 Mapel" },
-          { key: "rekap_nilai", label: "📊 Rekap Nilai" },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => {
-              setActiveTab(tab.key as typeof activeTab);
-              if (tab.key === "murid") setSelectedFolderKelasId(null);
+        {/* ── Module Dropdown Selector (Replaces 6-tab horizontal row) ── */}
+        <div className="mt-4">
+          <DropdownSelector
+            options={[
+              { key: "murid",       label: "Data Santri / Murid",          icon: "📁", badge: allMurid.length, description: "Kelola data, kartu, dan import santri" },
+              { key: "kenaikan",    label: "Kenaikan Kelas & Kelulusan",   icon: "🚀", description: "Promosi kelas serempak & mutasi manual" },
+              { key: "guru",        label: "Data Guru & Penugasan Mapel",  icon: "👨‍🏫", badge: guruList.length, description: "Kelola guru & plotting mengajar" },
+              { key: "kelas",       label: "Rombongan Belajar (Kelas)",    icon: "🏫", badge: kelasList.length, description: "Kelola rombel & wali kelas" },
+              { key: "halaqah",     label: "Halaqah Al-Qur'an",            icon: "📖", description: "Kelola halaqah Tahsin & Tahfidz lintas kelas" },
+              { key: "mapel",       label: "Katalog Mata Pelajaran",       icon: "📚", badge: mapelList.length, description: "Tambah & kelola mapel" },
+              { key: "rekap_nilai", label: "Rekapitulasi Nilai Global",    icon: "📊", description: "Rekap nilai semua kelas" },
+            ]}
+            value={activeTab}
+            onChange={(k) => {
+              setActiveTab(k as typeof activeTab);
+              if (k === "murid") {
+                setSelectedFolderKelasId(null);
+                setSelectedFolderHalaqahId(null);
+              }
               setSearchTerm("");
             }}
-            className={`shrink-0 px-3 py-3 text-center border-b-2 transition whitespace-nowrap ${
-              activeTab === tab.key
-                ? "border-amber-600 text-amber-800 bg-amber-50/40"
-                : "border-transparent text-slate-500 hover:text-slate-800"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+            className="w-full"
+          />
+        </div>
       </div>
 
       <div className="p-4 space-y-4">
 
+
         {/* ===================================================================== */}
-        {/* ⭐ TAB 1: DATA MURID DENGAN FOLDER PER KELAS                           */}
+        {/* 🕌 TAB HALAQAH AL-QUR'AN                                               */}
+        {/* ===================================================================== */}
+        {activeTab === "halaqah" && (
+          <HalaqahAdminPanel />
+        )}
+
+        {/* ===================================================================== */}
+        {/* ⭐ TAB 1: DATA MURID DENGAN FOLDER PER KELAS & HALAQAH                 */}
         {/* ===================================================================== */}
         {activeTab === "murid" && (
           <div className="space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                {selectedFolderKelasId ? `Folder: ${selectedFolderKelas?.nama}` : "Pilih Folder Kelas"}
+                {selectedFolderKelasId
+                  ? `Folder: ${selectedFolderKelas?.nama}`
+                  : selectedFolderHalaqahId
+                  ? `Halaqah: ${halaqahList.find((h) => h.id === selectedFolderHalaqahId)?.nama}`
+                  : "Pilih Folder Santri"}
               </span>
               <div className="flex items-center gap-1.5">
                 <button
@@ -507,36 +577,107 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Folder Grid View */}
-            {!selectedFolderKelasId ? (
+            {/* 1. KONDISI: Belum masuk folder (Pilih Kategori: Kelas Formal vs Halaqah) */}
+            {!selectedFolderKelasId && !selectedFolderHalaqahId && (
               <div className="space-y-3">
-                <p className="text-xs text-slate-500">
-                  Data murid dikelompokkan per folder kelas. Klik untuk membuka dan mengelola murid:
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                  {kelasList.map((k) => {
-                    const studentCount = allMurid.filter((m) => m.kelasId === k.id).length;
-                    return (
-                      <button
-                        key={k.id}
-                        onClick={() => { setSelectedFolderKelasId(k.id); setSearchTerm(""); }}
-                        className="flex flex-col items-start rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-xs hover:border-amber-400 hover:shadow-md transition active:scale-98"
-                      >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 mb-2">
-                          <Folder className="h-6 w-6" />
-                        </div>
-                        <h4 className="text-sm font-bold text-slate-900 leading-tight">{k.nama}</h4>
-                        <p className="mt-1 text-xs text-slate-500 font-semibold">{studentCount} Siswa</p>
-                        <p className="text-[10px] text-slate-400">Wali: {k.waliNama}</p>
-                        <span className="mt-2 text-[10px] text-amber-700 font-bold flex items-center gap-0.5">
-                          Buka Folder <ChevronRight className="h-3 w-3" />
-                        </span>
-                      </button>
-                    );
-                  })}
+                {/* Tab Switcher Kategori Folder */}
+                <div className="flex rounded-2xl bg-slate-100 p-1 gap-1 border border-slate-200/60">
+                  <button
+                    type="button"
+                    onClick={() => setMuridFolderCategory("kelas")}
+                    className={`flex items-center justify-center gap-1.5 flex-1 py-2 text-xs font-bold rounded-xl transition ${
+                      muridFolderCategory === "kelas"
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    <Folder className="h-3.5 w-3.5 text-amber-500" />
+                    <span>Kelas Formal ({kelasList.length})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMuridFolderCategory("halaqah")}
+                    className={`flex items-center justify-center gap-1.5 flex-1 py-2 text-xs font-bold rounded-xl transition ${
+                      muridFolderCategory === "halaqah"
+                        ? "bg-purple-600 text-white shadow-sm"
+                        : "text-slate-500 hover:text-slate-700"
+                    }`}
+                  >
+                    <span>📖</span>
+                    <span>Halaqah Al-Qur'an ({halaqahList.length})</span>
+                  </button>
                 </div>
+
+                {muridFolderCategory === "kelas" ? (
+                  <>
+                    <p className="text-xs text-slate-500">
+                      Data murid dikelompokkan per folder kelas. Klik untuk membuka dan mengelola murid:
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {kelasList.map((k) => {
+                        const studentCount = allMurid.filter((m) => m.kelasId === k.id).length;
+                        return (
+                          <button
+                            key={k.id}
+                            onClick={() => { setSelectedFolderKelasId(k.id); setSearchTerm(""); }}
+                            className="flex flex-col items-start rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-xs hover:border-amber-400 hover:shadow-md transition active:scale-98"
+                          >
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 mb-2">
+                              <Folder className="h-6 w-6" />
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-900 leading-tight">{k.nama}</h4>
+                            <p className="mt-1 text-xs text-slate-500 font-semibold">{studentCount} Siswa</p>
+                            <p className="text-[10px] text-slate-400">Wali: {k.waliNama || "Belum diatur"}</p>
+                            <span className="mt-2 text-[10px] text-amber-700 font-bold flex items-center gap-0.5">
+                              Buka Folder <ChevronRight className="h-3 w-3" />
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-slate-500">
+                      Folder halaqah Al-Qur'an (santri lintas jenjang). Klik folder untuk melihat &amp; menambah santri:
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {halaqahList.map((h) => (
+                        <button
+                          key={h.id}
+                          onClick={() => openHalaqahFolder(h.id)}
+                          className="flex flex-col items-start rounded-2xl border border-purple-200 bg-white p-4 text-left shadow-xs hover:border-purple-400 hover:shadow-md transition active:scale-98 group"
+                        >
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-700 text-xl mb-2 group-hover:scale-105 transition">
+                            📖
+                          </div>
+                          <h4 className="text-sm font-bold text-slate-900 leading-tight truncate w-full">{h.nama}</h4>
+                          <p className="mt-1 text-xs text-purple-700 font-semibold">{h.totalAnggota} Santri</p>
+                          <p className="text-[10px] text-slate-400 truncate w-full">Musyrif: {h.musyrifNama || "Belum diatur"}</p>
+                          <span className="mt-2 text-[10px] text-purple-700 font-bold flex items-center gap-0.5">
+                            Buka Halaqah <ChevronRight className="h-3 w-3" />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    {halaqahList.length === 0 && (
+                      <div className="rounded-2xl border border-dashed border-purple-200 bg-purple-50/20 p-8 text-center text-xs text-purple-600">
+                        Belum ada halaqah Al-Qur'an.<br />
+                        <button
+                          onClick={() => setActiveTab("halaqah")}
+                          className="mt-2 inline-block font-bold underline text-purple-700"
+                        >
+                          Buat halaqah di tab Halaqah Al-Qur'an →
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-            ) : (
+            )}
+
+            {/* 2. KONDISI: Masuk Folder Kelas Formal */}
+            {selectedFolderKelasId && (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <button
@@ -544,7 +685,7 @@ export default function AdminPage() {
                     className="flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition"
                   >
                     <ArrowLeft className="h-3.5 w-3.5" />
-                    <span>Kembali ke Folder Kelas</span>
+                    <span>Kembali ke Folder</span>
                   </button>
                   <button
                     onClick={() => handleOpenModal("murid")}
@@ -601,6 +742,116 @@ export default function AdminPage() {
                 </div>
               </div>
             )}
+
+            {/* 3. KONDISI: Masuk Folder Halaqah Al-Qur'an */}
+            {selectedFolderHalaqahId && (() => {
+              const currentHalaqah = halaqahList.find((h) => h.id === selectedFolderHalaqahId);
+              const filteredMembers = halaqahMembers.filter((m) =>
+                m.muridNama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (m.muridNis && m.muridNis.includes(searchTerm))
+              );
+
+              return (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      onClick={() => { setSelectedFolderHalaqahId(null); setHalaqahMembers([]); setSearchTerm(""); }}
+                      className="flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition"
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5" />
+                      <span>Kembali ke Folder</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedKelasForAddHalaqah(kelasList[0]?.id || "");
+                        setSelectedMuridIdsForHalaqah([]);
+                        setIsAddMuridHalaqahOpen(true);
+                      }}
+                      className="flex items-center gap-1.5 rounded-xl bg-purple-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-purple-700 active:scale-95 transition shadow-xs"
+                    >
+                      <PlusCircle className="h-3.5 w-3.5" />
+                      <span>Tambah Murid</span>
+                    </button>
+                  </div>
+
+                  {/* Halaqah Info Card */}
+                  <div className="rounded-2xl border border-purple-100 bg-gradient-to-r from-purple-50 to-indigo-50 p-3.5 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-white text-xl shadow-xs">
+                        📖
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-black text-slate-900">{currentHalaqah?.nama}</h3>
+                        <p className="text-[11px] text-slate-600 mt-0.5">
+                          Musyrif: <span className="font-bold text-purple-700">{currentHalaqah?.musyrifNama || "Belum diatur"}</span>
+                          {" · "}
+                          <span className="font-semibold text-slate-700">{halaqahMembers.length} Santri Terdaftar</span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Search */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder={`Cari santri di ${currentHalaqah?.nama || "halaqah"}...`}
+                      className="w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 py-2 text-xs text-slate-900 focus:border-purple-500 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Members List */}
+                  {isLoadingMembers ? (
+                    <div className="p-8 text-center text-xs text-slate-400">Memuat anggota halaqah...</div>
+                  ) : filteredMembers.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-purple-200 bg-purple-50/20 p-8 text-center text-xs text-slate-500 space-y-2">
+                      <p className="font-semibold text-slate-700">Halaqah ini belum memiliki murid.</p>
+                      <p className="text-[11px] text-slate-400">Klik tombol <strong>+ Tambah Murid</strong> di atas untuk memasukkan santri dari kelas.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {filteredMembers.map((m, idx) => (
+                        <div
+                          key={m.id || m.muridId}
+                          className="w-full flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 text-left shadow-xs hover:border-purple-200 transition"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-700 font-black text-sm">
+                              {m.muridNama ? m.muridNama.charAt(0) : "S"}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-900">{m.muridNama}</p>
+                              <p className="text-[10px] text-slate-500">
+                                NIS: <span className="font-bold text-slate-700">{m.muridNis || "-"}</span>
+                                {m.kelasNama && (
+                                  <span className="ml-1.5 rounded-full bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold text-slate-600">
+                                    {m.kelasNama}
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] text-slate-400">#{idx + 1}</span>
+                            <button
+                              onClick={() => handleRemoveMember(m.muridId, m.muridNama)}
+                              className="flex h-7 w-7 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-500 hover:bg-rose-100 hover:text-rose-700 transition"
+                              title="Keluarkan dari halaqah"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
@@ -799,7 +1050,7 @@ export default function AdminPage() {
         )}
 
         {/* ===================================================================== */}
-        {/* ⭐ TAB 4: KELAS                                                         */}
+        {/* ⭐ TAB 4: KELAS (ROMBEL)                                               */}
         {/* ===================================================================== */}
         {activeTab === "kelas" && (
           <div className="space-y-3">
@@ -1104,6 +1355,8 @@ export default function AdminPage() {
                   ))}
                 </div>
 
+
+
                 {/* Action Buttons */}
                 <div className="grid grid-cols-3 gap-2">
                   <button onClick={openMuridEdit} className="flex flex-col items-center gap-1 rounded-xl border border-amber-200 bg-amber-50 p-3 hover:bg-amber-100 transition">
@@ -1188,6 +1441,27 @@ export default function AdminPage() {
               )}
             </div>
 
+            {/* Halaqah yang Dibimbing (Musyrif) */}
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Halaqah yang Dibimbing (Musyrif):</span>
+              {(() => {
+                const guruHalaqah = halaqahList.filter((h) => h.musyrifId === selectedGuruDetail.id);
+                return guruHalaqah.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {guruHalaqah.map((h) => (
+                      <span key={h.id} className="inline-flex items-center gap-1 rounded-lg bg-purple-50 px-2 py-1 text-[10px] font-semibold text-purple-800 border border-purple-200/60">
+                        📖 {h.nama}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-1 text-[11px] text-slate-400 italic">
+                    Belum ada halaqah yang diampu. Atur melalui tombol di bawah.
+                  </p>
+                );
+              })()}
+            </div>
+
             {/* Action Buttons */}
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -1204,6 +1478,10 @@ export default function AdminPage() {
                           kelasNama: a.kelasNama,
                         }));
                   setTempPenugasan(initialPenugasan);
+                  const initialHalaqah = halaqahList
+                    .filter((h) => h.musyrifId === selectedGuruDetail.id)
+                    .map((h) => h.id);
+                  setTempHalaqahIds(initialHalaqah);
                   setSelectedGuruDetail(null);
                 }}
                 className="flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-3 text-xs font-bold text-white hover:bg-blue-700"
@@ -1283,7 +1561,12 @@ export default function AdminPage() {
           <div className="w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-sm font-bold text-slate-900">
-                Tambah {modalType === "murid" ? "Murid Baru" : modalType === "guru" ? "Guru Baru" : modalType === "kelas" ? "Kelas Baru" : "Mata Pelajaran"}
+                Tambah {
+                  modalType === "murid" ? "Murid Baru" :
+                  modalType === "guru" ? "Guru Baru" :
+                  modalType === "kelas" ? "Kelas Baru" :
+                  "Mata Pelajaran"
+                }
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><X className="h-5 w-5" /></button>
             </div>
@@ -1291,7 +1574,11 @@ export default function AdminPage() {
             <form onSubmit={handleSaveUser} className="space-y-3 text-xs">
               <div>
                 <label className="block font-semibold text-slate-700 mb-1">
-                  {modalType === "kelas" ? "Nama Kelas (Contoh: Kelas 7A)" : modalType === "mapel" ? "Nama Mata Pelajaran" : "Nama Lengkap"}
+                  {
+                    modalType === "kelas" ? "Nama Kelas (Contoh: Kelas 7A)" :
+                    modalType === "mapel" ? "Nama Mata Pelajaran" :
+                    "Nama Lengkap"
+                  }
                 </label>
                 <input type="text" required value={nama} onChange={(e) => setNama(e.target.value)} placeholder="Ketik nama..." className="w-full rounded-xl border border-slate-200 p-2.5 text-slate-900 focus:border-amber-500 focus:outline-none" />
               </div>
@@ -1384,8 +1671,11 @@ export default function AdminPage() {
               </div>
               <button onClick={() => setSelectedGuruForAssignment(null)} className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><X className="h-5 w-5" /></button>
             </div>
-            <p className="text-xs text-slate-500">Centang mata pelajaran dan kelas yang diampu. Saat guru membuat tugas, hanya pilihan ini yang muncul.</p>
+            <p className="text-xs text-slate-500">Centang mata pelajaran dan kelas yang diampu, serta halaqah Al-Qur'an yang dibimbing.</p>
+
+            {/* Mata Pelajaran & Kelas */}
             <div className="space-y-3">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">1. Mata Pelajaran &amp; Kelas:</span>
               {mapelList.map((m) => (
                 <div key={m.id} className="rounded-xl border border-slate-200 bg-slate-50/50 p-3 space-y-2">
                   <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
@@ -1409,6 +1699,42 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
+
+            {/* Halaqah Al-Qur'an (Musyrif) */}
+            <div className="rounded-xl border border-purple-200 bg-purple-50/40 p-3 space-y-2">
+              <span className="text-xs font-bold text-purple-950 flex items-center gap-1.5">
+                <span>📖</span>
+                <span>2. Bimbingan Halaqah Al-Qur'an (Musyrif)</span>
+              </span>
+              <p className="text-[11px] text-slate-500">Centang halaqah yang diampu / dibimbing oleh guru ini:</p>
+              {halaqahList.length === 0 ? (
+                <p className="text-[11px] text-slate-400 italic">Belum ada halaqah. Buat di tab Halaqah Al-Qur'an.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-1.5">
+                  {halaqahList.map((h) => {
+                    const isAssigned = tempHalaqahIds.includes(h.id);
+                    return (
+                      <label key={h.id} className={`flex items-center gap-2 p-2 rounded-lg border text-xs cursor-pointer transition ${isAssigned ? "bg-purple-100 border-purple-300 text-purple-950 font-bold" : "bg-white border-slate-200 text-slate-600"}`}>
+                        <input
+                          type="checkbox"
+                          checked={isAssigned}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setTempHalaqahIds([...tempHalaqahIds, h.id]);
+                            } else {
+                              setTempHalaqahIds(tempHalaqahIds.filter((id) => id !== h.id));
+                            }
+                          }}
+                          className="h-3.5 w-3.5 rounded text-purple-600"
+                        />
+                        <span className="text-[11px] truncate">{h.nama}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
@@ -1424,9 +1750,22 @@ export default function AdminPage() {
                 onClick={async () => {
                   try {
                     setIsSavingAssignment(true);
+                    // 1. Simpan penugasan mapel
                     await updatePenugasanGuru(selectedGuruForAssignment.id, tempPenugasan);
+
+                    // 2. Simpan penugasan halaqah musyrif
+                    for (const h of halaqahList) {
+                      const isSelected = tempHalaqahIds.includes(h.id);
+                      const isCurrentMusyrif = h.musyrifId === selectedGuruForAssignment.id;
+                      if (isSelected && !isCurrentMusyrif) {
+                        await updateHalaqahMusyrif(h.id, selectedGuruForAssignment.id);
+                      } else if (!isSelected && isCurrentMusyrif) {
+                        await updateHalaqahMusyrif(h.id, null);
+                      }
+                    }
+
                     setSelectedGuruForAssignment(null);
-                    alert(`Penugasan mengajar untuk ${selectedGuruForAssignment.nama} berhasil disimpan!`);
+                    alert(`Penugasan mengajar & halaqah untuk ${selectedGuruForAssignment.nama} berhasil disimpan!`);
                   } catch (err: any) {
                     alert("Gagal menyimpan penugasan: " + (err?.message || "Terjadi kesalahan."));
                   } finally {
@@ -1445,6 +1784,194 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* ⭐ MODAL TAMBAH MURID KE HALAQAH (FILTER PER KELAS) */}
+      {isAddMuridHalaqahOpen && selectedFolderHalaqahId && (() => {
+        const currentHalaqah = halaqahList.find((h) => h.id === selectedFolderHalaqahId);
+        const muridInSelectedKelas = allMurid.filter((m) => m.kelasId === selectedKelasForAddHalaqah);
+        const existingMemberIds = new Set(halaqahMembers.map((m) => m.muridId));
+
+        const handleToggleMurid = (id: string) => {
+          setSelectedMuridIdsForHalaqah((prev) =>
+            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+          );
+        };
+
+        const handleSelectAllInClass = () => {
+          const eligibleIds = muridInSelectedKelas
+            .filter((m) => !existingMemberIds.has(m.id))
+            .map((m) => m.id);
+          const allSelected = eligibleIds.length > 0 && eligibleIds.every((id) => selectedMuridIdsForHalaqah.includes(id));
+          if (allSelected) {
+            setSelectedMuridIdsForHalaqah((prev) => prev.filter((id) => !eligibleIds.includes(id)));
+          } else {
+            const newSet = new Set([...selectedMuridIdsForHalaqah, ...eligibleIds]);
+            setSelectedMuridIdsForHalaqah(Array.from(newSet));
+          }
+        };
+
+        const handleSubmitAddMembers = async () => {
+          if (selectedMuridIdsForHalaqah.length === 0) {
+            alert("Pilih minimal 1 santri untuk ditambahkan.");
+            return;
+          }
+          setIsSubmittingHalaqahMurid(true);
+          try {
+            await addHalaqahAnggota(selectedFolderHalaqahId, selectedMuridIdsForHalaqah);
+            const updated = await fetchHalaqahAnggota(selectedFolderHalaqahId);
+            setHalaqahMembers(updated);
+            setIsAddMuridHalaqahOpen(false);
+            setSelectedMuridIdsForHalaqah([]);
+            alert(`Berhasil menambahkan ${selectedMuridIdsForHalaqah.length} santri ke ${currentHalaqah?.nama}!`);
+          } catch (err: any) {
+            alert(err.message || "Gagal menambahkan santri.");
+          } finally {
+            setIsSubmittingHalaqahMurid(false);
+          }
+        };
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in duration-150">
+            <div className="w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl bg-white shadow-2xl overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 p-4 bg-purple-50/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple-600 text-white text-base">
+                    📖
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900">Tambah Murid ke Halaqah</h3>
+                    <p className="text-[11px] font-semibold text-purple-700">{currentHalaqah?.nama}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsAddMuridHalaqahOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-4 space-y-3.5 overflow-y-auto flex-1">
+                {/* Step 1: Pilih Kelas */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                    1. Pilih Kelas Asal Murid:
+                  </label>
+                  <select
+                    value={selectedKelasForAddHalaqah}
+                    onChange={(e) => {
+                      setSelectedKelasForAddHalaqah(e.target.value);
+                    }}
+                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs font-semibold text-slate-900 focus:border-purple-500 focus:outline-none"
+                  >
+                    <option value="" disabled>-- Pilih Kelas --</option>
+                    {kelasList.map((k) => (
+                      <option key={k.id} value={k.id}>
+                        {k.nama} ({allMurid.filter((m) => m.kelasId === k.id).length} Siswa)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Step 2: List Murid Kelas Terpilih */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-700">
+                      2. Pilih Murid dari Kelas Ini:
+                    </label>
+                    {selectedKelasForAddHalaqah && muridInSelectedKelas.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleSelectAllInClass}
+                        className="text-[11px] font-bold text-purple-700 hover:underline"
+                      >
+                        Pilih / Batal Semua
+                      </button>
+                    )}
+                  </div>
+
+                  {!selectedKelasForAddHalaqah ? (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-400">
+                      Silakan pilih kelas terlebih dahulu di atas.
+                    </div>
+                  ) : muridInSelectedKelas.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-400">
+                      Tidak ada murid di kelas ini.
+                    </div>
+                  ) : (
+                    <div className="max-h-60 overflow-y-auto space-y-1.5 rounded-xl border border-slate-200 p-2 bg-slate-50/50">
+                      {muridInSelectedKelas.map((murid) => {
+                        const isAlreadyMember = existingMemberIds.has(murid.id);
+                        const isSelected = selectedMuridIdsForHalaqah.includes(murid.id);
+
+                        return (
+                          <label
+                            key={murid.id}
+                            className={`flex items-center justify-between p-2 rounded-xl border text-xs transition cursor-pointer ${
+                              isAlreadyMember
+                                ? "bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed"
+                                : isSelected
+                                ? "bg-purple-100 border-purple-300 text-purple-950 font-semibold"
+                                : "bg-white border-slate-200 text-slate-800 hover:border-purple-200"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <input
+                                type="checkbox"
+                                disabled={isAlreadyMember}
+                                checked={isAlreadyMember || isSelected}
+                                onChange={() => {
+                                  if (!isAlreadyMember) handleToggleMurid(murid.id);
+                                }}
+                                className="h-4 w-4 rounded text-purple-600"
+                              />
+                              <div>
+                                <p className="font-bold">{murid.nama}</p>
+                                <p className="text-[10px] text-slate-500">
+                                  NIS: {murid.nis} · {murid.jenisKelamin === "P" ? "Perempuan" : "Laki-laki"}
+                                </p>
+                              </div>
+                            </div>
+                            {isAlreadyMember && (
+                              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[9px] font-bold text-slate-600">
+                                Sudah terdaftar
+                              </span>
+                            )}
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between border-t border-slate-100 p-4 bg-slate-50/80 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddMuridHalaqahOpen(false)}
+                  disabled={isSubmittingHalaqahMurid}
+                  className="rounded-xl bg-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-300"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmittingHalaqahMurid || selectedMuridIdsForHalaqah.length === 0}
+                  onClick={handleSubmitAddMembers}
+                  className="flex-1 rounded-xl bg-purple-600 py-2.5 text-xs font-bold text-white shadow-md shadow-purple-600/30 hover:bg-purple-700 disabled:opacity-50 transition"
+                >
+                  {isSubmittingHalaqahMurid
+                    ? "Menambahkan..."
+                    : `Tambahkan (${selectedMuridIdsForHalaqah.length} Santri)`}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ===================================================================== */}
       {/* 🔐 MODAL GANTI PIN MANUAL                                            */}

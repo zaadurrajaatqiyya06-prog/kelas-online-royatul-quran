@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Calendar,
   CheckCircle2,
@@ -110,12 +110,24 @@ function AvatarInitials({ name, size = 32 }: { name: string; size?: number }) {
 
 function PantauTugasWalmuContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const kelasId = params?.kelasId as string;
 
+  // Baca ?date= dari URL. Jika ada → mode Rekap Khusus (terkunci).
+  // Jika tidak ada → mode Universal (selalu hari ini, live).
+  const presetDate = searchParams?.get("date") || null;
+  const isPresetMode = !!presetDate;
+
   const [date, setDate] = useState<string>("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   useEffect(() => {
-    setDate(todayWIB());
-  }, []);
+    if (presetDate) {
+      setDate(presetDate);
+    } else {
+      setDate(todayWIB());
+    }
+  }, [presetDate]);
 
   const [selectedMapelIds, setSelectedMapelIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -150,7 +162,7 @@ function PantauTugasWalmuContent() {
     if (date) fetchData();
   }, [fetchData, date]);
 
-  // Auto-refresh tiap 30 detik
+  // Auto-refresh tiap 30 detik (mode Universal maupun Preset)
   useEffect(() => {
     const timer = setInterval(() => fetchData(true), 30000);
     return () => clearInterval(timer);
@@ -162,8 +174,10 @@ function PantauTugasWalmuContent() {
     );
   };
 
+  // Salin link universal (tanpa parameter tanggal)
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const universalUrl = `${window.location.origin}${window.location.pathname}`;
+    navigator.clipboard.writeText(universalUrl);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
   };
@@ -179,17 +193,16 @@ function PantauTugasWalmuContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20 flex flex-col">
-        {/* Header skeleton */}
-        <header className="bg-gradient-to-r from-emerald-800 to-teal-800 text-white px-4 py-5 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-white/20 animate-pulse" />
+      <div className="min-h-screen bg-slate-50 flex flex-col">
+        <header className="bg-white border-b border-slate-200 px-4 py-4 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-slate-100 animate-pulse" />
           <div className="space-y-2 flex-1">
-            <div className="h-3 w-32 rounded bg-white/30 animate-pulse" />
-            <div className="h-4 w-52 rounded bg-white/20 animate-pulse" />
+            <div className="h-3 w-32 rounded bg-slate-200 animate-pulse" />
+            <div className="h-4 w-52 rounded bg-slate-100 animate-pulse" />
           </div>
         </header>
         <main className="flex-1 flex flex-col items-center justify-center gap-4 p-8">
-          <div className="h-12 w-12 rounded-2xl bg-emerald-100 flex items-center justify-center animate-pulse">
+          <div className="h-12 w-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
             <RefreshCw className="h-6 w-6 text-emerald-500 animate-spin" />
           </div>
           <p className="text-sm font-medium text-slate-500">Memuat data pengumpulan tugas…</p>
@@ -201,28 +214,22 @@ function PantauTugasWalmuContent() {
   // ── Main render ───────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20 pb-16 font-sans" style={{ fontFamily: "'Inter', 'system-ui', sans-serif" }}>
+    <div className="min-h-screen bg-slate-50 pb-16 font-sans" style={{ fontFamily: "'Inter', 'system-ui', sans-serif" }}>
 
-      {/* ══════════════════════════════════════════
-          HEADER
-      ══════════════════════════════════════════ */}
-      <header className="relative overflow-hidden bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 text-white shadow-xl">
-        {/* Decorative orbs */}
-        <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white/5 blur-2xl pointer-events-none" />
-        <div className="absolute -bottom-4 left-1/3 h-24 w-24 rounded-full bg-teal-400/10 blur-xl pointer-events-none" />
-
-        <div className="relative mx-auto max-w-4xl px-4 py-4 sm:px-6">
+      {/* HEADER */}
+      <header className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between gap-3">
             {/* Branding */}
             <div className="flex items-center gap-3 min-w-0">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/15 border border-white/25 backdrop-blur-sm">
-                <GraduationCap className="h-5 w-5 text-emerald-200" />
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-100">
+                <GraduationCap className="h-5 w-5 text-emerald-600" />
               </div>
               <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300 truncate">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 truncate">
                   Royatul Qur'an Digital · Portal Wali Murid
                 </p>
-                <h1 className="text-sm font-extrabold sm:text-base truncate">
+                <h1 className="text-sm font-extrabold sm:text-base truncate text-slate-900">
                   Pantau Tugas {data?.kelas.nama || "Kelas"}
                 </h1>
               </div>
@@ -230,20 +237,27 @@ function PantauTugasWalmuContent() {
 
             {/* Action buttons */}
             <div className="flex items-center gap-1.5 shrink-0">
-              {/* Live indicator */}
-              <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-900/60 border border-emerald-500/30 px-2.5 py-1 text-[11px] font-bold text-emerald-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Live
-              </span>
+              {/* Mode Badge: Live Universal vs Rekap Preset */}
+              {isPresetMode ? (
+                <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-1 text-[11px] font-bold text-blue-700">
+                  <Calendar className="h-3 w-3" />
+                  {date ? formatDate(date, { day: "numeric", month: "short" }) : "Rekap"}
+                </span>
+              ) : (
+                <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Live Hari Ini
+                </span>
+              )}
 
               <button
                 type="button"
                 onClick={() => fetchData(true)}
                 disabled={isRefreshing}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition disabled:opacity-40"
+                className="flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition disabled:opacity-40"
                 title="Refresh data"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+                <RefreshCw className={`h-3.5 w-3.5 text-slate-600 ${isRefreshing ? "animate-spin" : ""}`} />
               </button>
 
               <button
@@ -252,7 +266,7 @@ function PantauTugasWalmuContent() {
                 className={`flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition ${
                   copiedLink
                     ? "bg-emerald-500 text-white"
-                    : "bg-white/15 border border-white/25 hover:bg-white/25"
+                    : "border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
                 }`}
               >
                 {copiedLink ? <Check className="h-3.5 w-3.5" /> : <Share2 className="h-3.5 w-3.5" />}
@@ -260,6 +274,27 @@ function PantauTugasWalmuContent() {
               </button>
             </div>
           </div>
+
+          {/* Banner Mode Info */}
+          {isPresetMode ? (
+            <div className="mt-3 flex items-center gap-2 rounded-xl bg-blue-50 border border-blue-200 px-3 py-2">
+              <Calendar className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+              <p className="text-xs font-semibold text-blue-700">
+                📅 Rekap Tugas: {date ? formatDate(date) : ""}
+              </p>
+              <span className="ml-auto text-[10px] text-blue-500 flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+                Update Otomatis
+              </span>
+            </div>
+          ) : (
+            <div className="mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <p className="text-xs font-semibold text-emerald-700">
+                🟢 Pantauan Live Tugas Hari Ini — Update Otomatis Setiap 30 Detik
+              </p>
+            </div>
+          )}
         </div>
       </header>
 
@@ -293,50 +328,80 @@ function PantauTugasWalmuContent() {
 
         {/* ── FILTER PANEL ── */}
         <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          {/* Tanggal + toggle */}
+          {/* Baris atas: info tanggal aktif + accordion Lihat Hari Lain */}
           <div className="flex items-center justify-between gap-3 px-4 py-3">
             <div className="flex items-center gap-2 flex-wrap">
+              {/* Badge tanggal aktif — read only, tidak bisa di-klik walmu */}
               <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5">
                 <Calendar className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                <input
-                  type="date"
-                  id="pantau-date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none w-[130px]"
-                />
+                <span className="text-xs font-semibold text-slate-800">
+                  {date ? formatDate(date, { weekday: "short", day: "numeric", month: "short" }) : "Memuat…"}
+                </span>
               </div>
-              <button
-                type="button"
-                onClick={() => setDate(today)}
-                className={`rounded-xl border px-2.5 py-1.5 text-xs font-bold transition ${
-                  date === today
-                    ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                Hari Ini
-              </button>
-              <span className="hidden md:block text-xs text-slate-400">
-                {date ? formatDate(date) : ""}
-              </span>
+              {!isPresetMode && date !== today && (
+                <button
+                  type="button"
+                  onClick={() => setDate(today)}
+                  className="rounded-xl border border-emerald-400 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition"
+                >
+                  Hari Ini
+                </button>
+              )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowFilters((v) => !v)}
-              className="flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-emerald-700 transition"
-            >
-              <Filter className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Filter</span>
-              <ChevronDown className={`h-3 w-3 transition-transform ${showFilters ? "rotate-180" : ""}`} />
-              {selectedMapelIds.length > 0 && (
-                <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] font-black text-white">
-                  {selectedMapelIds.length}
-                </span>
-              )}
-            </button>
+            <div className="flex items-center gap-1.5">
+              {/* Tombol Lihat Hari Lain (accordion date picker tersembunyi) */}
+              <button
+                type="button"
+                onClick={() => setShowDatePicker((v) => !v)}
+                className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold transition ${
+                  showDatePicker
+                    ? "bg-slate-200 text-slate-700"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+                title="Lihat tugas hari lain"
+              >
+                <Calendar className="h-3 w-3" />
+                <span className="hidden sm:inline text-[10px]">Hari Lain</span>
+                <ChevronDown className={`h-3 w-3 transition-transform ${showDatePicker ? "rotate-180" : ""}`} />
+              </button>
+              {/* Tombol Filter Mapel */}
+              <button
+                type="button"
+                onClick={() => setShowFilters((v) => !v)}
+                className="flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-emerald-700 transition"
+              >
+                <Filter className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Filter</span>
+                <ChevronDown className={`h-3 w-3 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+                {selectedMapelIds.length > 0 && (
+                  <span className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[9px] font-black text-white">
+                    {selectedMapelIds.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
+
+          {/* Accordion: Date Picker Lihat Hari Lain */}
+          {showDatePicker && (
+            <div className="border-t border-slate-100 bg-slate-50 px-4 py-3 flex items-center gap-3 flex-wrap">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Lihat hari lain:</span>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => { setDate(e.target.value); setShowDatePicker(false); }}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:border-emerald-500 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => { setDate(today); setShowDatePicker(false); }}
+                className="rounded-xl border border-emerald-400 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition"
+              >
+                Kembali ke Hari Ini
+              </button>
+            </div>
+          )}
 
           {/* Active Date Pills */}
           {data?.activeDates && data.activeDates.length > 0 && (

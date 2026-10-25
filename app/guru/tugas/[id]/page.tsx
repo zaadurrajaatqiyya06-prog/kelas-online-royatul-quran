@@ -6,19 +6,22 @@ import Link from "next/link";
 import { useApp } from "@/lib/store";
 import type { Pengumpulan } from "@/lib/store";
 import { AppNavbar } from "@/components/Navbar";
+import { LembarJawabanModal } from "@/components/ui/LembarJawabanModal";
+import { getDaysRemaining } from "@/lib/submission-cache-client";
 import {
   ArrowLeft,
   CheckCircle2,
   AlertCircle,
   ExternalLink,
   Award,
-  Clock,
   FolderOpen,
-  FileCheck,
-  Send,
-  X,
+  Eye,
+  Clock,
+  Archive,
   Search,
 } from "lucide-react";
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 function DetailTugasGuruContent() {
   const params = useParams();
@@ -27,11 +30,9 @@ function DetailTugasGuruContent() {
 
   const tugas = tugasList.find((t) => t.id === tugasId);
 
-  // Selected submission for grading modal
-  const [selectedSub, setSelectedSub] = useState<Pengumpulan | null>(null);
-  const [inputNilai, setInputNilai] = useState<number>(85);
-  const [inputCatatan, setInputCatatan] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  // Modal lembar jawaban: simpan indeks santri yang sedang dilihat
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   if (!tugas) {
     return (
@@ -44,21 +45,17 @@ function DetailTugasGuruContent() {
     );
   }
 
-  // Get all students of this class
+  // Semua murid di kelas ini
   const classStudents = usersList.filter(
     (u) => u.role === "murid" && u.kelasId === tugas.kelasId
   );
 
-  // Map each student with their submission (if any)
+  // Pasangkan tiap murid dengan submission-nya
   const studentRows = classStudents.map((student) => {
     const submission = pengumpulanList.find(
       (p) => p.tugasId === tugas.id && p.muridId === student.id
     );
-    return {
-      student,
-      submission,
-      hasSubmitted: !!submission,
-    };
+    return { student, submission, hasSubmitted: !!submission };
   });
 
   const filteredRows = studentRows.filter((r) =>
@@ -69,18 +66,20 @@ function DetailTugasGuruContent() {
   const totalKumpul = studentRows.filter((r) => r.hasSubmitted).length;
   const totalBelum = studentRows.length - totalKumpul;
 
-  const handleOpenGradeModal = (sub: Pengumpulan) => {
-    setSelectedSub(sub);
-    setInputNilai(sub.nilai ?? 85);
-    setInputCatatan(sub.catatanGuru || "");
+  // Callback dari modal lembar jawaban: simpan nilai
+  const handleSaveGrade = (submissionId: string, nilai: number, catatan: string) => {
+    nilaiTugas(submissionId, nilai, catatan);
   };
 
-  const handleSaveGrade = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedSub) return;
-
-    nilaiTugas(selectedSub.id, Number(inputNilai), inputCatatan.trim());
-    setSelectedSub(null);
+  // Helper: cek apakah cache lokal masih tersedia & berapa hari tersisa
+  const getCacheInfo = (sub: Pengumpulan | undefined) => {
+    if (!sub || !sub.waktuSubmit) return { hasCache: false, daysLeft: 0 };
+    const hasCacheFile = !!sub.localFileUrl;
+    const daysLeft = getDaysRemaining(sub.waktuSubmit);
+    return {
+      hasCache: hasCacheFile && daysLeft > 0,
+      daysLeft,
+    };
   };
 
   return (
@@ -96,12 +95,15 @@ function DetailTugasGuruContent() {
           <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
             {tugas.kelasNama} • {tugas.mapelNama}
           </span>
-          <h1 className="text-sm font-bold text-slate-900 leading-tight truncate max-w-[240px]">{tugas.judul}</h1>
+          <h1 className="text-sm font-bold text-slate-900 leading-tight truncate max-w-[240px]">
+            {tugas.judul}
+          </h1>
         </div>
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Quick Stats & GDrive Link */}
+
+        {/* Quick Stats */}
         <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm space-y-3">
           <div className="grid grid-cols-2 gap-3 text-center">
             <div className="rounded-xl bg-emerald-50 p-2.5 border border-emerald-100">
@@ -114,7 +116,7 @@ function DetailTugasGuruContent() {
             </div>
           </div>
 
-          {/* Shortcut Buka Folder Google Drive */}
+          {/* Shortcut Folder Google Drive */}
           {tugas.driveFolderUrl && (
             <a
               href={tugas.driveFolderUrl}
@@ -149,149 +151,150 @@ function DetailTugasGuruContent() {
             Daftar Murid ({filteredRows.length})
           </h3>
 
-          {filteredRows.map(({ student, submission, hasSubmitted }) => (
-            <div
-              key={student.id}
-              className={`rounded-2xl border p-3.5 transition ${
-                hasSubmitted
-                  ? "border-slate-100 bg-white shadow-sm"
-                  : "border-rose-100 bg-rose-50/20"
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-bold text-slate-900">{student.nama}</span>
-                    <span className="text-[10px] text-slate-400">NIS: {student.nis}</span>
+          {filteredRows.map(({ student, submission, hasSubmitted }, idx) => {
+            const { hasCache, daysLeft } = getCacheInfo(submission);
+            const driveUrl = submission?.gdriveFileUrl || submission?.pdfUrl;
+            const hasOnlineAnswer = !!(
+              submission?.jawabanTeks ||
+              submission?.jawabanPG ||
+              submission?.jawabanEsaiList
+            );
+            const canPreview = hasSubmitted && (hasCache || hasOnlineAnswer);
+
+            // Cari index di filteredRows untuk buka modal
+            const globalIdx = studentRows.findIndex(
+              (r) => r.student.id === student.id
+            );
+
+            return (
+              <div
+                key={student.id}
+                className={`rounded-2xl border p-3.5 transition ${
+                  hasSubmitted
+                    ? "border-slate-100 bg-white shadow-sm"
+                    : "border-rose-100 bg-rose-50/20"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  {/* Info Kiri */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900">{student.nama}</span>
+                      <span className="text-[10px] text-slate-400">NIS: {student.nis}</span>
+                    </div>
+
+                    {hasSubmitted && submission ? (
+                      <div className="mt-1 space-y-0.5 text-[11px] text-slate-500">
+                        <p className="flex items-center gap-1 text-emerald-700 font-medium">
+                          <CheckCircle2 className="h-3 w-3" />
+                          <span>
+                            Kumpul:{" "}
+                            {new Date(submission.waktuSubmit || "").toLocaleTimeString("id-ID", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </p>
+                        {submission.fileName && (
+                          <p className="truncate max-w-[180px] text-slate-500 font-mono text-[10px]">
+                            📎 {submission.fileName}
+                          </p>
+                        )}
+
+                        {/* Badge status cache */}
+                        {hasCache ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
+                            <Clock className="h-2.5 w-2.5" />
+                            Tersisa {daysLeft} hari
+                          </span>
+                        ) : driveUrl ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[9px] font-bold text-amber-700">
+                            <Archive className="h-2.5 w-2.5" />
+                            Di Google Drive
+                          </span>
+                        ) : hasOnlineAnswer ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-[9px] font-bold text-blue-700">
+                            📝 Jawaban Online
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-rose-600">
+                        <AlertCircle className="h-3 w-3" />
+                        <span>Belum Mengumpulkan</span>
+                      </p>
+                    )}
                   </div>
 
-                  {hasSubmitted && submission ? (
-                    <div className="mt-1 space-y-0.5 text-[11px] text-slate-500">
-                      <p className="flex items-center gap-1 text-emerald-700 font-medium">
-                        <CheckCircle2 className="h-3 w-3" />
-                        <span>Kumpul: {new Date(submission.waktuSubmit || "").toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</span>
-                      </p>
-                      {submission.fileName && (
-                        <p className="truncate max-w-[200px] text-slate-600 font-mono text-[10px]">
-                          📎 {submission.fileName}
-                        </p>
-                      )}
-                      {(submission.gdriveFileUrl || submission.pdfUrl) && (
-                        <a
-                          href={submission.gdriveFileUrl || submission.pdfUrl || "#"}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline mt-0.5"
-                        >
-                          <ExternalLink className="h-2.5 w-2.5" />
-                          <span>Buka File di Google Drive</span>
-                        </a>
-                      )}
-                      {submission.jawabanTeks && (
-                        <p className="italic text-slate-600 line-clamp-1">"{submission.jawabanTeks}"</p>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-rose-600">
-                      <AlertCircle className="h-3 w-3" />
-                      <span>Belum Mengumpulkan</span>
-                    </p>
-                  )}
-                </div>
+                  {/* Tombol Aksi Kanan */}
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    {/* Tombol Cek Lembar Jawaban (cache lokal / online) */}
+                    {canPreview && (
+                      <button
+                        onClick={() => setViewerIndex(globalIdx)}
+                        className="flex items-center gap-1 rounded-xl bg-emerald-600 px-2.5 py-1.5 text-[10px] font-bold text-white shadow-sm hover:bg-emerald-700 active:scale-95 transition"
+                        title="Cek Lembar Jawaban"
+                      >
+                        <Eye className="h-3 w-3" />
+                        <span>Cek Jawaban</span>
+                      </button>
+                    )}
 
-                {/* Action / Grade Badge */}
-                <div>
-                  {hasSubmitted && submission ? (
-                    submission.status === "dinilai" ? (
-                      <button
-                        onClick={() => handleOpenGradeModal(submission)}
-                        className="flex flex-col items-end rounded-xl bg-emerald-50 px-2.5 py-1 text-right hover:bg-emerald-100 transition"
+                    {/* Tombol Drive (fallback jika cache habis dan ada URL Drive) */}
+                    {!hasCache && driveUrl && !hasOnlineAnswer && hasSubmitted && (
+                      <a
+                        href={driveUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-[10px] font-bold text-amber-700 hover:bg-amber-100 transition"
+                        title="Buka di Google Drive"
                       >
-                        <span className="text-base font-black text-emerald-700 leading-none">
-                          {submission.nilai}
-                        </span>
-                        <span className="text-[9px] font-semibold text-emerald-800">Ubah Nilai</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => handleOpenGradeModal(submission)}
-                        className="rounded-xl bg-amber-500 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-amber-600 transition"
-                      >
-                        Beri Nilai
-                      </button>
-                    )
-                  ) : null}
+                        <ExternalLink className="h-3 w-3" />
+                        <span>Drive</span>
+                      </a>
+                    )}
+
+                    {/* Badge Nilai / Tombol Beri Nilai */}
+                    {hasSubmitted && submission ? (
+                      submission.status === "dinilai" ? (
+                        <button
+                          onClick={() => setViewerIndex(globalIdx)}
+                          className="flex flex-col items-end rounded-xl bg-emerald-50 px-2.5 py-1 text-right hover:bg-emerald-100 transition"
+                          title="Ubah Nilai"
+                        >
+                          <span className="text-base font-black text-emerald-700 leading-none">
+                            {submission.nilai}
+                          </span>
+                          <span className="text-[9px] font-semibold text-emerald-800">
+                            <Award className="inline h-2.5 w-2.5 mr-0.5" />Ubah
+                          </span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setViewerIndex(globalIdx)}
+                          className="rounded-xl bg-amber-500 px-3 py-1.5 text-[10px] font-bold text-white shadow-sm hover:bg-amber-600 transition"
+                        >
+                          Beri Nilai
+                        </button>
+                      )
+                    ) : null}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Modal Beri Nilai */}
-      {selectedSub && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">Beri Nilai Tugas</h3>
-                <p className="text-xs text-slate-500">{selectedSub.muridNama} (NIS {selectedSub.muridNis})</p>
-              </div>
-              <button
-                onClick={() => setSelectedSub(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveGrade} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Nilai Angka (Skala 0 - 100)
-                </label>
-                <input
-                  type="number"
-                  min={0}
-                  max={100}
-                  required
-                  value={inputNilai}
-                  onChange={(e) => setInputNilai(Number(e.target.value))}
-                  className="w-full rounded-xl border border-slate-200 p-3 text-lg font-bold text-emerald-700 text-center focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Catatan Evaluasi / Komentar Guru
-                </label>
-                <textarea
-                  rows={3}
-                  value={inputCatatan}
-                  onChange={(e) => setInputCatatan(e.target.value)}
-                  placeholder="Contoh: Sangat baik, makhraj tajwid jelas dan lancar."
-                  className="w-full rounded-xl border border-slate-200 p-3 text-xs text-slate-900 focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedSub(null)}
-                  className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/30 hover:bg-emerald-700"
-                >
-                  Simpan Nilai
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* ── Lembar Jawaban Modal (Split-Screen Viewer) ── */}
+      {viewerIndex !== null && (
+        <LembarJawabanModal
+          submissions={studentRows}
+          initialIndex={viewerIndex}
+          tugas={tugas}
+          onClose={() => setViewerIndex(null)}
+          onSaveGrade={handleSaveGrade}
+        />
       )}
     </div>
   );

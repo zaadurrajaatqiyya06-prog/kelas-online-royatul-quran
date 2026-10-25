@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uploadFileToDrive, getOrCreateTaskFolderHierarchy } from "@/lib/gdrive";
+import { saveSubmissionCache } from "@/lib/submission-cache";
 
 // POST /api/drive/upload
 // Endpoint upload file tugas santri ke Google Drive sekolah
+// + Menyimpan salinan cepat di server lokal selama 7 hari untuk preview guru
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -13,6 +15,8 @@ export async function POST(req: NextRequest) {
     const mapelNama = (formData.get("mapelNama") as string) || "Mapel";
     const tugasJudul = (formData.get("tugasJudul") as string) || "Tugas";
     const customFileName = formData.get("fileName") as string | null;
+    // Extra params untuk cache lokal
+    const muridId = formData.get("muridId") as string | null;
 
     if (!file) {
       return NextResponse.json({ error: "File tidak ditemukan." }, { status: 400 });
@@ -42,12 +46,28 @@ export async function POST(req: NextRequest) {
       folderId: targetFolderId,
     });
 
+    // ─── SIMPAN SALINAN CACHE LOKAL (7 HARI) ───────────────────────────────
+    // Hanya simpan jika ada muridId & tugasId sebagai identitas folder cache
+    let localUrl: string | null = null;
+    if (muridId && tugasId) {
+      const cacheResult = saveSubmissionCache({
+        tugasId,
+        muridId,
+        fileName,
+        buffer,
+        mimeType: file.type,
+      });
+      localUrl = cacheResult.localUrl;
+    }
+    // ───────────────────────────────────────────────────────────────────────
+
     return NextResponse.json({
       success: true,
       fileId: result.fileId,
       webViewLink: result.webViewLink,
       downloadUrl: result.downloadUrl,
       targetFolderId,
+      localUrl, // URL preview cache lokal (tersedia max 7 hari)
     }, { status: 200 });
 
   } catch (err: any) {

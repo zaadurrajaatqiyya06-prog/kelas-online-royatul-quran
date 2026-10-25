@@ -6,6 +6,7 @@ import { useApp } from "@/lib/store";
 import { AppNavbar } from "@/components/Navbar";
 import { BottomNav } from "@/components/BottomNav";
 import { Kelas, Tugas } from "@/lib/mock-data";
+import { SandwichActionMenu } from "@/components/ui/SandwichActionMenu";
 import {
   PlusCircle,
   Users,
@@ -288,25 +289,41 @@ export default function GuruDashboard() {
             <p className="text-xs text-slate-400">NIP: {currentUser.nip || "2001"}</p>
           </div>
 
-          <Link
-            href="/guru/tugas/baru"
-            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-emerald-600/30 hover:bg-emerald-500 active:scale-95 transition"
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span>Buat Tugas</span>
-          </Link>
-        </div>
-
-        {/* Quick Action Button: Input Nilai Manual Offline */}
-        <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between">
-          <span className="text-[11px] text-emerald-200">Ada ulangan / tugas fisik offline?</span>
-          <button
-            onClick={() => handleOpenManualModal(selectedKelasId || undefined, selectedMapelId || undefined)}
-            className="flex items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 px-3 py-1.5 text-xs font-bold text-slate-950 shadow-xs transition active:scale-95"
-          >
-            <FileEdit className="h-3.5 w-3.5" />
-            <span>Input Nilai Manual (Offline)</span>
-          </button>
+          {/* Sandwich Action Menu — Tindakan Guru */}
+          <SandwichActionMenu
+            label="Tindakan"
+            align="right"
+            className="text-white"
+            items={[
+              {
+                key: "buat_tugas",
+                label: "Buat Tugas Baru",
+                icon: "📝",
+                onClick: () => (window.location.href = "/guru/tugas/baru"),
+              },
+              {
+                key: "input_nilai",
+                label: "Input Nilai Manual (Offline)",
+                icon: "✏️",
+                onClick: () => handleOpenManualModal(selectedKelasId || undefined, selectedMapelId || undefined),
+                divider: true,
+              },
+              {
+                key: "unduh_rekap",
+                label: selectedTugasId ? "Unduh Rekap Nilai Tugas" : "Unduh Rekap (Pilih Tugas Dulu)",
+                icon: "📥",
+                disabled: !selectedTugasId,
+                onClick: handleDownloadRekapNilai,
+                divider: true,
+              },
+              {
+                key: "halaqah",
+                label: "Halaqah Al-Qur'an Saya",
+                icon: "📖",
+                onClick: () => (window.location.href = "/guru/halaqah"),
+              },
+            ]}
+          />
         </div>
       </div>
 
